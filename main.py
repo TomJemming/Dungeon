@@ -37,6 +37,8 @@ class GameView(arcade.View):
         self.player_life = 5
         self.slime_spawn_timer = 10
         self.stage_timer = 10
+        self.stage = 1
+        self.onetime_door = True
 
 
         self.background = arcade.load_texture(file_name="images/background.png")
@@ -51,6 +53,8 @@ class GameView(arcade.View):
         self.fireball_list = arcade.SpriteList()
         self.health_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
+        self.door_list = arcade.SpriteList()
+
 #player
         self.player = arcade.AnimatedWalkingSprite()
         self.character_scale = 1
@@ -115,11 +119,13 @@ class GameView(arcade.View):
                                       SCREEN_WIDTH, SCREEN_HEIGHT,
                                       self.background)
         arcade.draw_text("{0:1}".format(int(self.stage_timer)), SCREEN_WIDTH/2, SCREEN_HEIGHT - 75, arcade.color.WHITE, 35, align="center", anchor_x="center",anchor_y="center")
+        arcade.draw_text("{0:1}".format(int(self.stage)), SCREEN_WIDTH - 150, SCREEN_HEIGHT - 75, arcade.color.WHITE, 35, align="center", anchor_x="center",anchor_y="center")
         arcade.draw_text("x " + str(self.player_life), color=arcade.color.WHITE, start_x = 120, start_y= SCREEN_HEIGHT - 75, font_size= 45)
         self.enemy_list.draw()
         self.player_list.draw()
         self.crosshair_list.draw()
         self.fireball_list.draw()
+        self.door_list.draw()
         self.health_list.draw()
 
 
@@ -165,6 +171,12 @@ class GameView(arcade.View):
             health = arcade.Sprite(filename="images/player_health.png", scale=0.15, center_x= 60, center_y= SCREEN_HEIGHT - 50)
             self.health_list.append(health)
             self.onetime_health = False
+
+    def door(self):
+        door = arcade.Sprite(filename="images/light.png")
+        door.center_x = SCREEN_WIDTH-100
+        door.center_y = SCREEN_HEIGHT//2
+        self.door_list.append(door)
 
     def slime_enemy(self):
         #slime = arcade.AnimatedWalkingSprite()
@@ -251,6 +263,7 @@ class GameView(arcade.View):
         self.health_list.update()
         self.player_health()
         self.enemy_list.update()
+        self.door_list.update()
 
         self.fireball_list.update()
         self.fireball_list.update_animation()
@@ -263,7 +276,8 @@ class GameView(arcade.View):
         if self.fireball_timer > 0:
             self.fireball_timer -= delta_time
 
-        self.stage_timer -= delta_time
+        if self.stage_timer > 0:
+            self.stage_timer -= delta_time
 
 
 #fireball_cast_animation
@@ -313,6 +327,23 @@ class GameView(arcade.View):
                 slime.change_y = -1
 
 
+#door
+        if self.stage_timer < 0.01:
+            if self.onetime_door == True:
+                self.door()
+                self.stage += 1
+                self.onetime_door = False
+        door_hit_with_player = arcade.check_for_collision_with_list(self.player, self.door_list)
+        for door in door_hit_with_player:
+            self.player.center_x = 200
+            self.player.center_y = SCREEN_HEIGHT//2
+            door.kill()
+            self.stage_timer = 10
+            self.onetime_door = True
+            self.enemy_list = arcade.SpriteList()
+            self.fireball_list = arcade.SpriteList()
+
+
 #game_over
         if self.player_life < 1:
             arcade.close_window()
@@ -355,7 +386,7 @@ class GameView(arcade.View):
 
 #fireball_hitbox
         for fireball in self.fireball_list:
-            if fireball.bottom > SCREEN_HEIGHT - 200 or fireball.top < 200 or fireball.right < 200 or fireball.left > SCREEN_WIDTH - 200:
+            if fireball.bottom > SCREEN_HEIGHT - 150 or fireball.top < 150 or fireball.right < 150 or fireball.left > SCREEN_WIDTH - 150:
                 fireball.kill()
 
 
