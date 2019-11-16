@@ -37,6 +37,10 @@ class GameView(arcade.View):
         self.player_life = 5
         self.slime_spawn_timer = 10
         self.stage_timer = 10
+        self.animation_timer_2 = 1
+        self.animation_clock_2 = 1
+        self.animation_timer_3 = 1.5
+        self.animation_clock_3 = 1
         self.stage = 1
         self.onetime_door = True
 
@@ -52,7 +56,7 @@ class GameView(arcade.View):
         self.crosshair_list = arcade.SpriteList()
         self.fireball_list = arcade.SpriteList()
         self.health_list = arcade.SpriteList()
-        self.enemy_list = arcade.SpriteList()
+        self.slime_list = arcade.SpriteList()
         self.door_list = arcade.SpriteList()
 
 #player
@@ -121,7 +125,8 @@ class GameView(arcade.View):
         arcade.draw_text("{0:1}".format(int(self.stage_timer)), SCREEN_WIDTH/2, SCREEN_HEIGHT - 75, arcade.color.WHITE, 35, align="center", anchor_x="center",anchor_y="center")
         arcade.draw_text("{0:1}".format(int(self.stage)), SCREEN_WIDTH - 150, SCREEN_HEIGHT - 75, arcade.color.WHITE, 35, align="center", anchor_x="center",anchor_y="center")
         arcade.draw_text("x " + str(self.player_life), color=arcade.color.WHITE, start_x = 120, start_y= SCREEN_HEIGHT - 75, font_size= 45)
-        self.enemy_list.draw()
+        #arcade.draw_text(str(self.animation_clock_2), color = arcade.color.WHITE, start_x = 120, start_y = SCREEN_HEIGHT - 150)
+        self.slime_list.draw()
         self.player_list.draw()
         self.crosshair_list.draw()
         self.fireball_list.draw()
@@ -166,6 +171,37 @@ class GameView(arcade.View):
         if self.fireball_timer < 0.1:
             self.shoot_cd = True
 
+    def animation(self, sprite, name, frames: 2, scale: 1):
+        #self.animation_timer -= self.global_timer
+        if frames == 2:
+            if self.animation_clock_2 == 1:
+                sprite.textures.clear()
+                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-1)+".png",scale= scale))
+                sprite.set_texture(0)
+                sprite.textures.clear()
+            if self.animation_clock_2 == 2:
+                sprite.textures.clear()
+                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames)+".png",scale= scale))
+                sprite.set_texture(0)
+                sprite.textures.clear()
+        if frames == 3:
+            if self.animation_clock_3 == 1:
+                sprite.textures.clear()
+                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-2)+".png",scale= scale))
+                sprite.set_texture(0)
+                sprite.textures.clear()
+            if self.animation_clock_3 == 2:
+                sprite.textures.clear()
+                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-1)+".png",scale= scale))
+                sprite.set_texture(0)
+                sprite.textures.clear()
+            if self.animation_clock_3 == 3:
+                sprite.textures.clear()
+                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames)+".png",scale= scale))
+                sprite.set_texture(0)
+                sprite.textures.clear()
+
+
     def player_health(self):
         if self.onetime_health == True:
             health = arcade.Sprite(filename="images/player_health.png", scale=0.15, center_x= 60, center_y= SCREEN_HEIGHT - 50)
@@ -179,26 +215,7 @@ class GameView(arcade.View):
         self.door_list.append(door)
 
     def slime_enemy(self):
-        #slime = arcade.AnimatedWalkingSprite()
-        #slime_scale = 1
-
         slime = arcade.Sprite(filename="images/slime_1.png")
-
-        #slime.stand_left_textures = []
-        #slime.stand_left_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale))
-
-        #slime.stand_right_textures = []
-        #slime.stand_right_textures.append(arcade.load_texture("images/slime_1.png", scale=slime_scale,mirrored=True))
-
-        #slime.walk_right_textures = []
-        #slime.walk_right_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale,mirrored=True))
-        #slime.walk_right_textures.append(arcade.load_texture("images/slime_2.png",scale=slime_scale,mirrored=True))
-
-        #slime.walk_left_textures = []
-        #slime.walk_left_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale))
-        #slime.walk_left_textures.append(arcade.load_texture("images/slime_2.png",scale=slime_scale))
-
-        #slime.texture_change_distance = 50
 
         slime.center_y = random.randrange(200, SCREEN_HEIGHT-200)
         slime.center_x = random.randrange(200, SCREEN_WIDTH-100)
@@ -218,21 +235,12 @@ class GameView(arcade.View):
             else:
                 slime_coords_spawn_y = True
 
-
-        self.enemy_list.append(slime)
+        self.slime_list.append(slime)
 
 
 
     def fireball(self):
-        fireball = arcade.Sprite(filename= "images/fireball1.png",scale=0.15)
-        #fireball = arcade.AnimatedTimeSprite()
-        #fireball_scale = 0.25
-
-        #fireball.textures = []
-        #fireball.textures.append(arcade.load_texture("images/fireball1.png", scale=fireball_scale))
-        #fireball.textures.append(arcade.load_texture("images/fireball2.png", scale=fireball_scale))
-        #fireball.textures.append(arcade.load_texture("images/fireball3.png", scale=fireball_scale))
-
+        fireball = arcade.Sprite(filename= "images/fireball_1.png",scale=0.15)
 
         start_x = self.player.center_x
         start_y = self.player.center_y + 50
@@ -262,7 +270,7 @@ class GameView(arcade.View):
         self.crosshair_list.update()
         self.health_list.update()
         self.player_health()
-        self.enemy_list.update()
+        self.slime_list.update()
         self.door_list.update()
 
         self.fireball_list.update()
@@ -279,6 +287,25 @@ class GameView(arcade.View):
         if self.stage_timer > 0:
             self.stage_timer -= delta_time
 
+#animation_clocks
+        self.animation_timer_2 -= delta_time
+        if self.animation_timer_2 < 0.75 and self.animation_timer_2 > 0.5:
+            self.animation_clock_2 = 1
+            self.animation_timer_2 = 1.5
+        if self.animation_timer_2 < 1.25 and self.animation_timer_2 > 1:
+            self.animation_clock_2 = 2
+            self.animation_timer_2 = 1
+
+        self.animation_timer_3 -= delta_time
+        if self.animation_timer_3 < 0.75 and self.animation_timer_3 > 0.5:
+            self.animation_clock_3 = 1
+            self.animation_timer_3 = 1.5
+        if self.animation_timer_3 < 1.25 and self.animation_timer_3 > 1:
+            self.animation_clock_3 = 2
+            self.animation_timer_3 = 2
+        if self.animation_timer_3 < 1.75 and self.animation_timer_3 > 1.5:
+            self.animation_clock_3 = 3
+            self.animation_timer_3 = 1
 
 #fireball_cast_animation
         if self.fireball_cast_timer > 0:
@@ -310,13 +337,19 @@ class GameView(arcade.View):
             self.fireball_cast_timer = 0
             self.shoot_cd = False
 
+#animations
+        for slime in self.slime_list:
+            self.animation(slime, "slime",2, 1)
+        for fireball in self.fireball_list:
+            self.animation(fireball, "fireball", 3, 0.15)
+
 
 #slime_movement + spawn
 
         if self.slime_spawn_timer > 5:
             self.slime_enemy()
             self.slime_spawn_timer = 0
-        for slime in self.enemy_list:
+        for slime in self.slime_list:
             if self.player.center_x > slime.center_x:
                 slime.change_x = 1
             else:
@@ -325,6 +358,7 @@ class GameView(arcade.View):
                 slime.change_y = 1
             else:
                 slime.change_y = -1
+
 
 
 #door
@@ -340,7 +374,7 @@ class GameView(arcade.View):
             door.kill()
             self.stage_timer = 10
             self.onetime_door = True
-            self.enemy_list = arcade.SpriteList()
+            self.slime_list = arcade.SpriteList()
             self.fireball_list = arcade.SpriteList()
 
 
@@ -351,20 +385,19 @@ class GameView(arcade.View):
 
 
 #slime hitbox
-        slime_hit_with_player = arcade.check_for_collision_with_list(self.player, self.enemy_list)
+        slime_hit_with_player = arcade.check_for_collision_with_list(self.player, self.slime_list)
         for slime in slime_hit_with_player:
             self.player_life -= 1
             slime.kill()
 
-        for slime in self.enemy_list:
+        for slime in self.slime_list:
             slime_hit_with_projectile = arcade.check_for_collision_with_list(slime, self.fireball_list)
             for slime_hit in slime_hit_with_projectile:
                 slime.kill()
 
-        for slime in self.enemy_list:
+        for slime in self.slime_list:
             if slime.bottom > SCREEN_HEIGHT - 150 or slime.top < 150 or slime.right < 150 or slime.left > SCREEN_WIDTH - 150:
                 slime.kill()
-
 
 #wall_hitbox
         wall_down_hit_list = arcade.check_for_collision_with_list(self.player, self.wall_down_list)
