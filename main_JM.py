@@ -1,3 +1,5 @@
+from typing import Any, Union
+
 import arcade
 import math
 import ctypes
@@ -5,6 +7,7 @@ import random
 
 
 user32 = ctypes.windll.user32
+
 SCREEN_WIDTH = user32.GetSystemMetrics(0)
 SCREEN_HEIGHT = user32.GetSystemMetrics(1)
 
@@ -36,14 +39,7 @@ class GameView(arcade.View):
         self.onetime_health = True
         self.player_life = 5
         self.slime_spawn_timer = 10
-        self.stage_timer = 10
-        self.loading_screen_timer = 0
-        self.animation_timer_2 = 1
-        self.animation_clock_2 = 1
-        self.animation_timer_3 = 1.5
-        self.animation_clock_3 = 1
-        self.stage = 1
-        self.onetime_door = True
+        self.spider_spawn_timer = 5
 
 
         self.background = arcade.load_texture(file_name="images/background.png")
@@ -57,10 +53,8 @@ class GameView(arcade.View):
         self.crosshair_list = arcade.SpriteList()
         self.fireball_list = arcade.SpriteList()
         self.health_list = arcade.SpriteList()
-        self.slime_list = arcade.SpriteList()
-        self.door_list = arcade.SpriteList()
-        self.loading_screen_list = arcade.SpriteList()
-
+        self.enemy_list = arcade.SpriteList()
+        self.spider_list = arcade.SpriteList()
 #player
         self.player = arcade.AnimatedWalkingSprite()
         self.character_scale = 1
@@ -124,19 +118,13 @@ class GameView(arcade.View):
         arcade.draw_texture_rectangle(SCREEN_WIDTH//2, SCREEN_HEIGHT//2,
                                       SCREEN_WIDTH, SCREEN_HEIGHT,
                                       self.background)
-        arcade.draw_text("{0:1}".format(int(self.stage_timer)), SCREEN_WIDTH/2, SCREEN_HEIGHT - 75, arcade.color.WHITE, 35, align="center", anchor_x="center",anchor_y="center")
-        arcade.draw_text("{0:1}".format(int(self.stage)), SCREEN_WIDTH - 150, SCREEN_HEIGHT - 75, arcade.color.WHITE, 35, align="center", anchor_x="center",anchor_y="center")
         arcade.draw_text("x " + str(self.player_life), color=arcade.color.WHITE, start_x = 120, start_y= SCREEN_HEIGHT - 75, font_size= 45)
-        #arcade.draw_text(str(self.animation_clock_2), color = arcade.color.WHITE, start_x = 120, start_y = SCREEN_HEIGHT - 150)
-        self.slime_list.draw()
+        self.enemy_list.draw()
+        self.spider_list.draw()
         self.player_list.draw()
         self.crosshair_list.draw()
         self.fireball_list.draw()
-        self.door_list.draw()
         self.health_list.draw()
-        self.loading_screen_list.draw()
-
-
 
     def on_key_press(self, symbol, modifiers:int):
         if self.shoot_cd == False:
@@ -174,58 +162,33 @@ class GameView(arcade.View):
         if self.fireball_timer < 0.1:
             self.shoot_cd = True
 
-    def animation(self, sprite, name, frames: 2, scale: 1):
-        if frames == 2:
-            if self.animation_clock_2 == 1:
-                sprite.textures.clear()
-                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-1)+".png",scale= scale))
-                sprite.set_texture(0)
-                sprite.textures.clear()
-            if self.animation_clock_2 == 2:
-                sprite.textures.clear()
-                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames)+".png",scale= scale))
-                sprite.set_texture(0)
-                sprite.textures.clear()
-        if frames == 3:
-            if self.animation_clock_3 == 1:
-                sprite.textures.clear()
-                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-2)+".png",scale= scale))
-                sprite.set_texture(0)
-                sprite.textures.clear()
-            if self.animation_clock_3 == 2:
-                sprite.textures.clear()
-                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-1)+".png",scale= scale))
-                sprite.set_texture(0)
-                sprite.textures.clear()
-            if self.animation_clock_3 == 3:
-                sprite.textures.clear()
-                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames)+".png",scale= scale))
-                sprite.set_texture(0)
-                sprite.textures.clear()
-
-
     def player_health(self):
         if self.onetime_health == True:
             health = arcade.Sprite(filename="images/player_health.png", scale=0.15, center_x= 60, center_y= SCREEN_HEIGHT - 50)
             self.health_list.append(health)
             self.onetime_health = False
 
-    def door(self):
-        door = arcade.Sprite(filename="images/light.png")
-        door.center_x = SCREEN_WIDTH-100
-        door.center_y = SCREEN_HEIGHT//2
-        self.door_list.append(door)
-
-    def loading_screen(self):
-        loading_screen = arcade.draw_rectangle_filled(SCREEN_HEIGHT//2, SCREEN_WIDTH//2, SCREEN_WIDTH, SCREEN_HEIGHT, color=arcade.color.BLACK)
-        stage = arcade.draw_text("Stage " + "{0:1}".format(int(self.stage)), SCREEN_WIDTH//2, SCREEN_HEIGHT//2, arcade.color.WHITE, 60, align="center", anchor_x="center",anchor_y="center")
-        self.loading_screen_list.append(loading_screen)
-        self.loading_screen_list.append(stage)
-        self.loading_screen_timer = 2
-#ZukunftsTom du bass domm, laodingscreen an stage sinn keng sprites, probeier den battaklang nemmen dann ze drawn an der draw functon, wann dei condition mat der door erfellt ass.
-
     def slime_enemy(self):
+        #slime = arcade.AnimatedWalkingSprite()
+        #slime_scale = 1
+
         slime = arcade.Sprite(filename="images/slime_1.png")
+
+                                                                #slime.stand_left_textures = []
+                                                                #slime.stand_left_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale))
+
+                                                                #slime.stand_right_textures = []
+                                                                #slime.stand_right_textures.append(arcade.oad_texture("images/slime_1.png", scale=slime_scale,mirrored=True))
+
+                                                                #slime.walk_right_textures = []
+                                                                #slime.walk_right_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale,mirrored=True))
+                                                                #slime.walk_right_textures.append(arcade.load_texture("images/slime_2.png",scale=slime_scale,mirrored=True))
+
+                                                                #slime.walk_left_textures = []
+                                                                #slime.walk_left_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale))
+                                                                #slime.walk_left_textures.append(arcade.load_texture("images/slime_2.png",scale=slime_scale))
+
+                                                                #slime.texture_change_distance = 50
 
         slime.center_y = random.randrange(200, SCREEN_HEIGHT-200)
         slime.center_x = random.randrange(200, SCREEN_WIDTH-100)
@@ -245,12 +208,47 @@ class GameView(arcade.View):
             else:
                 slime_coords_spawn_y = True
 
-        self.slime_list.append(slime)
+
+        self.enemy_list.append(slime)
+
+#spider
+    def spider_enemy(self):
+
+        spider = arcade.Sprite(filename="images/light.png",scale=1) #filename
+
+        spider.center_y = random.randrange(200, SCREEN_HEIGHT-200)
+        spider.center_x = random.randrange(200, SCREEN_WIDTH-100)
+        spider_coords_spawn_x = False
+        spider_coords_spawn_y = False
+
+        while spider_coords_spawn_x == False:
+            if spider.center_x < self.player.center_x + 100 and spider.center_x > self.player.center_x - 100:
+                spider.center_x = random.randrange(200, SCREEN_WIDTH)
+            else:
+                spider_coords_spawn_x = True
+
+
+        while spider_coords_spawn_y == False:
+            if spider.center_y < self.player.center_y + 100 and spider.center_y > self.player.center_y - 100:
+                spider.center_y = random.randrange(200, SCREEN_HEIGHT)
+            else:
+                spider_coords_spawn_y = True
+
+
+        self.spider_list.append(spider)
 
 
 
     def fireball(self):
-        fireball = arcade.Sprite(filename= "images/fireball_1.png",scale=0.15)
+        fireball = arcade.Sprite(filename= "images/fireball1.png",scale=0.15)
+        #fireball = arcade.AnimatedTimeSprite()
+        #fireball_scale = 0.25
+
+        #fireball.textures = []
+        #fireball.textures.append(arcade.load_texture("images/fireball1.png", scale=fireball_scale))
+        #fireball.textures.append(arcade.load_texture("images/fireball2.png", scale=fireball_scale))
+        #fireball.textures.append(arcade.load_texture("images/fireball3.png", scale=fireball_scale))
+
 
         start_x = self.player.center_x
         start_y = self.player.center_y + 50
@@ -274,15 +272,71 @@ class GameView(arcade.View):
         self.fireball_timer = 1
         self.fireball_cast_timer = 0
 
+        for slime in self.enemy_list:
+            self.evasion_movement(start_x,start_y,angle,slime.center_x,slime.center_y)
+
+        for spider in self.spider_list:
+            self.evasion_movement(start_x,start_y,angle,spider.center_x,spider.center_y)
+
+    def trajectory(self, x,y,w):
+    #calculating slope line
+        a = (math.tan(w))/1
+        b = a*x-y
+        trajectory_points={}
+        if a < 10000 :
+            for i in range (0,1366,27):
+                y_iter_coord = int(a*i+b)
+                trajectory_points.update([(i , y_iter_coord)])
+        else :
+            trajectory_points = list()
+            for i in range (0,1000,27):
+                y_iter_coord = i
+                trajectory_points.append(y_iter_coord)
+        return trajectory_points
+
+
+    def evasion(self, x,y,w,a,b):
+        d=0
+        points = self.trajectory(x,y,w)
+        if points == list:
+           for i in points:
+               d = sqrt((x-a)**2 + (i-b)**2)
+               if d < 100:
+                    return True, x ,i
+               else:
+                    return False
+        elif points == dict:
+           for i in points.keys():
+               d = sqrt((points.keys()[i]-a)**2+(points[i]-b)**2)
+               if d < 100:
+                   return True, x, i
+               else:
+                   return False
+
+
+    def evasion_movement(self, x,y,w,a,b):
+        if self.evasion(x,y,w,a,b) == True:
+            if x < a:
+                self.change_x = 1
+            else:
+                self.change_x = -1
+            if i < b:
+                self.change_y = 1
+            else:
+                self.change_y = -1
+        else:
+            self.change_x = 0
+            self.change_y = 0
+
+
 
     def update(self, delta_time):
 
         self.crosshair_list.update()
         self.health_list.update()
         self.player_health()
-        self.slime_list.update()
-        self.door_list.update()
-        self.loading_screen_list.update()
+        self.enemy_list.update()
+        self.spider_list.update()
 
         self.fireball_list.update()
         self.fireball_list.update_animation()
@@ -291,79 +345,47 @@ class GameView(arcade.View):
         self.player_list.update_animation()
 
         self.slime_spawn_timer += delta_time
+        self.spider_spawn_timer += delta_time
 
         if self.fireball_timer > 0:
             self.fireball_timer -= delta_time
 
-        if self.stage_timer > 0:
-            self.stage_timer -= delta_time
-
-        if self.loading_screen_timer > 0:
-            self.loading_screen_timer -= delta_time
-
-#animation_clocks
-        self.animation_timer_2 -= delta_time
-        if self.animation_timer_2 < 0.75 and self.animation_timer_2 > 0.5:
-            self.animation_clock_2 = 1
-            self.animation_timer_2 = 1.5
-        if self.animation_timer_2 < 1.25 and self.animation_timer_2 > 1:
-            self.animation_clock_2 = 2
-            self.animation_timer_2 = 1
-
-        self.animation_timer_3 -= delta_time
-        if self.animation_timer_3 < 0.75 and self.animation_timer_3 > 0.5:
-            self.animation_clock_3 = 1
-            self.animation_timer_3 = 1.5
-        if self.animation_timer_3 < 1.25 and self.animation_timer_3 > 1:
-            self.animation_clock_3 = 2
-            self.animation_timer_3 = 2
-        if self.animation_timer_3 < 1.75 and self.animation_timer_3 > 1.5:
-            self.animation_clock_3 = 3
-            self.animation_timer_3 = 1
-
 #fireball_cast_animation
-        if self.fireball_cast_timer > 0:
-            self.fireball_cast_timer -= delta_time
-        if self.fireball_cast_timer < 0.1 and self.player_move == False and self.shoot_cd == True:
-            self.player.stand_right_textures.clear()
-            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.character_scale))
-            self.player.stand_left_textures.clear()
-            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.character_scale,mirrored=True))
-            self.fireball_cast_timer = 1
-        if self.fireball_cast_timer < 0.87 and self.fireball_cast_timer > 0.5 and self.player_move == False and self.shoot_cd == True:
-            self.player.stand_right_textures.clear()
-            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_4.png",scale = self.character_scale))
-            self.player.stand_left_textures.clear()
-            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_4.png",scale=self.character_scale,mirrored=True))
-            self.fireball_cast_timer = 1.5
-        if self.fireball_cast_timer < 1.37 and self.fireball_cast_timer > 1 and self.player_move == False and self.shoot_cd == True:
-            self.player.stand_right_textures.clear()
-            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_5.png",scale = self.character_scale))
-            self.player.stand_left_textures.clear()
-            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_5.png",scale=self.character_scale,mirrored=True))
-            self.fireball_cast_timer = 2
-        if self.fireball_cast_timer < 1.87 and self.fireball_cast_timer > 1.5 and self.player_move == False and self.shoot_cd == True:
-            self.fireball()
-            self.player.stand_right_textures.clear()
-            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_1.png",scale = self.character_scale))
-            self.player.stand_left_textures.clear()
-            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.character_scale,mirrored=True))
-            self.fireball_cast_timer = 0
-            self.shoot_cd = False
-
-#animations
-        for slime in self.slime_list:
-            self.animation(slime, "slime",2, 1)
-        for fireball in self.fireball_list:
-            self.animation(fireball, "fireball", 3, 0.15)
-
+        # if self.fireball_cast_timer > 0:
+        #     self.fireball_cast_timer -= delta_time
+        # if self.fireball_cast_timer < 0.1 and self.player_move == False and self.shoot_cd == True:
+        #     self.player.stand_right_textures.clear()
+        #     self.player.stand_right_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.character_scale))
+        #     self.player.stand_left_textures.clear()
+        #     self.player.stand_left_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.character_scale,mirrored=True))
+        #     self.fireball_cast_timer = 1
+        # if self.fireball_cast_timer < 0.87 and self.fireball_cast_timer > 0.5 and self.player_move == False and self.shoot_cd == True:
+        #     self.player.stand_right_textures.clear()
+        #     self.player.stand_right_textures.append(arcade.load_texture("images/Mage_4.png",scale = self.character_scale))
+        #     self.player.stand_left_textures.clear()
+        #     self.player.stand_left_textures.append(arcade.load_texture("images/Mage_4.png",scale=self.character_scale,mirrored=True))
+        #     self.fireball_cast_timer = 1.5
+        # if self.fireball_cast_timer < 1.37 and self.fireball_cast_timer > 1 and self.player_move == False and self.shoot_cd == True:
+        #     self.player.stand_right_textures.clear()
+        #     self.player.stand_right_textures.append(arcade.load_texture("images/Mage_5.png",scale = self.character_scale))
+        #     self.player.stand_left_textures.clear()
+        #     self.player.stand_left_textures.append(arcade.load_texture("images/Mage_5.png",scale=self.character_scale,mirrored=True))
+        #     self.fireball_cast_timer = 2
+        # if self.fireball_cast_timer < 1.87 and self.fireball_cast_timer > 1.5 and self.player_move == False and self.shoot_cd == True:
+        #     self.fireball()
+        #     self.player.stand_right_textures.clear()
+        #     self.player.stand_right_textures.append(arcade.load_texture("images/Mage_1.png",scale = self.character_scale))
+        #     self.player.stand_left_textures.clear()
+        #     self.player.stand_left_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.character_scale,mirrored=True))
+        #     self.fireball_cast_timer = 0
+        #     self.shoot_cd = False
 
 #slime_movement + spawn
 
         if self.slime_spawn_timer > 5:
             self.slime_enemy()
             self.slime_spawn_timer = 0
-        for slime in self.slime_list:
+        for slime in self.enemy_list:
             if self.player.center_x > slime.center_x:
                 slime.change_x = 1
             else:
@@ -373,49 +395,55 @@ class GameView(arcade.View):
             else:
                 slime.change_y = -1
 
+#spider movement & spawn
 
-#door
-        if self.stage_timer < 0.01:
-            if self.onetime_door == True:
-                self.door()
-                self.onetime_door = False
-        door_hit_with_player = arcade.check_for_collision_with_list(self.player, self.door_list)
-        for door in door_hit_with_player:
-            self.stage += 1
-            self.player.center_x = 200
-            self.player.center_y = SCREEN_HEIGHT//2
-            door.kill()
-            self.stage_timer = 10
-            self.onetime_door = True
-            self.slime_list = arcade.SpriteList()
-            self.fireball_list = arcade.SpriteList()
-            self.loading_screen()
-            self.loading_screen_timer = 5
+        if self.spider_spawn_timer > 8:
+            self.spider_enemy()
+            self.spider_spawn_timer = 0
 
-        if self.loading_screen_timer > 1 and self.loading_screen_timer < 1.5:
-            for i in self.loading_screen_list:
-                i.kill()
-
-#game_over
-        if self.player_life < 1:
-            arcade.close_window()
-            print("Noob, you lost.")
-
+        for spider in self.spider_list:
+            if self.player.center_x > spider.center_x:
+                spider.change_x = 2
+            else:
+                spider.change_x = -2
+            if self.player.center_y > spider.center_y:
+                spider.change_y = 2
+            else:
+                spider.change_y = -2
 
 #slime hitbox
-        slime_hit_with_player = arcade.check_for_collision_with_list(self.player, self.slime_list)
+
+        slime_hit_with_player = arcade.check_for_collision_with_list(self.player, self.enemy_list)
         for slime in slime_hit_with_player:
             self.player_life -= 1
             slime.kill()
 
-        for slime in self.slime_list:
+        for slime in self.enemy_list:
             slime_hit_with_projectile = arcade.check_for_collision_with_list(slime, self.fireball_list)
             for slime_hit in slime_hit_with_projectile:
                 slime.kill()
 
-        for slime in self.slime_list:
+        for slime in self.enemy_list:
             if slime.bottom > SCREEN_HEIGHT - 150 or slime.top < 150 or slime.right < 150 or slime.left > SCREEN_WIDTH - 150:
                 slime.kill()
+
+#spider hitbox
+
+        spider_hit_with_player = arcade.check_for_collision_with_list(self.player, self.spider_list)
+        for spider in spider_hit_with_player:
+            self.player_life -= 1
+            spider.kill()
+
+        for spider in self.spider_list:
+            spider_hit_with_projectile = arcade.check_for_collision_with_list(spider, self.fireball_list)
+            for spider_hit in spider_hit_with_projectile:
+                spider.kill()
+
+        for spider in self.spider_list:
+            if spider.bottom > SCREEN_HEIGHT - 150 or spider.top < 150 or spider.right < 150 or spider.left > SCREEN_WIDTH - 150:
+                spider.kill()
+
+
 
 #wall_hitbox
         wall_down_hit_list = arcade.check_for_collision_with_list(self.player, self.wall_down_list)
@@ -434,11 +462,11 @@ class GameView(arcade.View):
         for wall in wall_right_hit_list:
             self.player.center_x -= 5
 
-
 #fireball_hitbox
         for fireball in self.fireball_list:
-            if fireball.bottom > SCREEN_HEIGHT - 150 or fireball.top < 150 or fireball.right < 150 or fireball.left > SCREEN_WIDTH - 150:
+            if fireball.bottom > SCREEN_HEIGHT - 200 or fireball.top < 200 or fireball.right < 200 or fireball.left > SCREEN_WIDTH - 200:
                 fireball.kill()
+
 
 
 class PauseView(arcade.View):
@@ -446,11 +474,11 @@ class PauseView(arcade.View):
         super().__init__()
         self.game_view = game_view
 
-
     def on_show(self):
+
+
         arcade.draw_text("PAUSED", SCREEN_WIDTH/2, SCREEN_HEIGHT/2+50,
                          arcade.color.BLACK, font_size=50, anchor_x="center")
-
 
         # Show tip to return or reset
         arcade.draw_text("Press Esc. to return",
@@ -466,13 +494,14 @@ class PauseView(arcade.View):
                          font_size=20,
                          anchor_x="center")
 
-
     def on_key_press(self, symbol, modifiers):
         if symbol == arcade.key.ESCAPE:   # resume game
             self.window.show_view(self.game_view)
         elif symbol == arcade.key.ENTER:  # reset game
             game = GameView()
             self.window.show_view(game)
+
+
 
 
 def main():
