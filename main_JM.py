@@ -233,6 +233,26 @@ class GameView(arcade.View):
         while spider_coords_spawn_y == False:
             if spider.center_y < self.player.center_y + 100 and spider.center_y > self.player.center_y - 100:
                 spider.center_y = random.randrange(200, SCREEN_HEIGHT)
+            else:#spider
+    def spider_enemy(self):
+
+        spider = arcade.Sprite(filename="images/spider_1.png",scale=0.1) #filename
+
+        spider.center_y = random.randrange(200, SCREEN_HEIGHT-200)
+        spider.center_x = random.randrange(200, SCREEN_WIDTH-100)
+        spider_coords_spawn_x = False
+        spider_coords_spawn_y = False
+
+        while spider_coords_spawn_x == False:
+            if spider.center_x < self.player.center_x + 100 and spider.center_x > self.player.center_x - 100:
+                spider.center_x = random.randrange(200, SCREEN_WIDTH)
+            else:
+                spider_coords_spawn_x = True
+
+
+        while spider_coords_spawn_y == False:
+            if spider.center_y < self.player.center_y + 100 and spider.center_y > self.player.center_y - 100:
+                spider.center_y = random.randrange(200, SCREEN_HEIGHT)
             else:
                 spider_coords_spawn_y = True
 
