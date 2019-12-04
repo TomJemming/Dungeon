@@ -393,16 +393,33 @@ class GameView(arcade.View):
         if self.spider_spawn_timer > 8:
             self.spider_enemy()
             self.spider_spawn_timer = 0
+        x2 = 2
+        y2 = 2
+        d1 = self.player.center_x - spider.center_x
+        d2 = self.player.center_y - spider.center_y
+        if d1 < d2:
+            c = True
+        else :
+            c = False
+        sx = x1 + x2
+        sy = y1 + y2
+        if abs(sx) == 1 and abs(sy) == 1:
+            if c:
+                y2 = 0
+                x2 = 3
+            else:
+                y2 = 3
+                x2 = 0
 
         for spider in self.spider_list:
             if self.player.center_x > spider.center_x:
-                spider.change_x = (2 + x1)
+                spider.change_x = (x2 + x1)
             else:
-                spider.change_x = (-2 + x1)
+                spider.change_x = (-x2 + x1)
             if self.player.center_y > spider.center_y:
-                spider.change_y = (2 + y1)
+                spider.change_y = (y2 + y1)
             else:
-                spider.change_y = (-2 + y1)
+                spider.change_y = (-y2 + y1)
 
 #slime hitbox
 
