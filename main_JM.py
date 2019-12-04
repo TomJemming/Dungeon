@@ -11,6 +11,8 @@ user32 = ctypes.windll.user32
 SCREEN_WIDTH = user32.GetSystemMetrics(0)
 SCREEN_HEIGHT = user32.GetSystemMetrics(1)
 
+x1 = 0
+y1 = 0
 
 class MenuView(arcade.View):
 
@@ -56,7 +58,7 @@ class GameView(arcade.View):
         self.enemy_list = arcade.SpriteList()
         self.spider_list = arcade.SpriteList()
 #player
-        self.player = arcade.AnimatedWalkingSprite()
+        self.player =  arcade.AnimatedWalkingSprite() #arcade.Sprite(filename="images/Mage_1.png")
         self.character_scale = 1
 
         self.player.stand_right_textures = []
@@ -174,21 +176,21 @@ class GameView(arcade.View):
 
         slime = arcade.Sprite(filename="images/slime_1.png")
 
-                                                                #slime.stand_left_textures = []
-                                                                #slime.stand_left_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale))
+        #slime.stand_left_textures = []
+        #slime.stand_left_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale))
 
-                                                                #slime.stand_right_textures = []
-                                                                #slime.stand_right_textures.append(arcade.oad_texture("images/slime_1.png", scale=slime_scale,mirrored=True))
+        #slime.stand_right_textures = []
+        #slime.stand_right_textures.append(arcade.load_texture("images/slime_1.png", scale=slime_scale,mirrored=True))
 
-                                                                #slime.walk_right_textures = []
-                                                                #slime.walk_right_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale,mirrored=True))
-                                                                #slime.walk_right_textures.append(arcade.load_texture("images/slime_2.png",scale=slime_scale,mirrored=True))
+        #slime.walk_right_textures = []
+        #slime.walk_right_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale,mirrored=True))
+        #slime.walk_right_textures.append(arcade.load_texture("images/slime_2.png",scale=slime_scale,mirrored=True))
 
-                                                                #slime.walk_left_textures = []
-                                                                #slime.walk_left_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale))
-                                                                #slime.walk_left_textures.append(arcade.load_texture("images/slime_2.png",scale=slime_scale))
+        #slime.walk_left_textures = []
+        #slime.walk_left_textures.append(arcade.load_texture("images/slime_1.png",scale=slime_scale))
+        #slime.walk_left_textures.append(arcade.load_texture("images/slime_2.png",scale=slime_scale))
 
-                                                                #slime.texture_change_distance = 50
+        #slime.texture_change_distance = 50
 
         slime.center_y = random.randrange(200, SCREEN_HEIGHT-200)
         slime.center_x = random.randrange(200, SCREEN_WIDTH-100)
@@ -214,7 +216,7 @@ class GameView(arcade.View):
 #spider
     def spider_enemy(self):
 
-        spider = arcade.Sprite(filename="images/light.png",scale=1) #filename
+        spider = arcade.Sprite(filename="images/spider_1.png",scale=0.1) #filename
 
         spider.center_y = random.randrange(200, SCREEN_HEIGHT-200)
         spider.center_x = random.randrange(200, SCREEN_WIDTH-100)
@@ -272,62 +274,33 @@ class GameView(arcade.View):
         self.fireball_timer = 1
         self.fireball_cast_timer = 0
 
-        for slime in self.enemy_list:
-            self.evasion_movement(start_x,start_y,angle,slime.center_x,slime.center_y)
-
         for spider in self.spider_list:
             self.evasion_movement(start_x,start_y,angle,spider.center_x,spider.center_y)
 
-    def trajectory(self, x,y,w):
-    #calculating slope line
-        a = (math.tan(w))/1
-        b = a*x-y
-        trajectory_points={}
-        if a < 10000 :
-            for i in range (0,1366,27):
-                y_iter_coord = int(a*i+b)
-                trajectory_points.update([(i , y_iter_coord)])
-        else :
-            trajectory_points = list()
-            for i in range (0,1000,27):
-                y_iter_coord = i
-                trajectory_points.append(y_iter_coord)
-        return trajectory_points
+    def trajectory(self,x,y,a,b):
+
+        diff_a = a-x
+        diff_b = b-y
+
+        v = math.atan2(diff_a, diff_b)
+        return v
 
 
-    def evasion(self, x,y,w,a,b):
-        d=0
-        points = self.trajectory(x,y,w)
-        if points == list:
-           for i in points:
-               d = sqrt((x-a)**2 + (i-b)**2)
-               if d < 100:
-                    return True, x ,i
-               else:
-                    return False
-        elif points == dict:
-           for i in points.keys():
-               d = sqrt((points.keys()[i]-a)**2+(points[i]-b)**2)
-               if d < 100:
-                   return True, x, i
-               else:
-                   return False
-
-
-    def evasion_movement(self, x,y,w,a,b):
-        if self.evasion(x,y,w,a,b) == True:
-            if x < a:
-                self.change_x = 1
+    def evasion_movement(self,x,y,w,a,b):
+        v = self.trajectory(x,y,a,b)
+        global x1
+        global y1
+        for spider in self.spider_list:
+            if  w < v + 12.5 and w > v - 12.5:
+                if w < v:
+                    x1 = 1
+                    y1 = 1
+                else:
+                    x1 = (-1)
+                    y1 = (-1)
             else:
-                self.change_x = -1
-            if i < b:
-                self.change_y = 1
-            else:
-                self.change_y = -1
-        else:
-            self.change_x = 0
-            self.change_y = 0
-
+                x1 = 0
+                y1 = 0
 
 
     def update(self, delta_time):
@@ -351,34 +324,34 @@ class GameView(arcade.View):
             self.fireball_timer -= delta_time
 
 #fireball_cast_animation
-        # if self.fireball_cast_timer > 0:
-        #     self.fireball_cast_timer -= delta_time
-        # if self.fireball_cast_timer < 0.1 and self.player_move == False and self.shoot_cd == True:
-        #     self.player.stand_right_textures.clear()
-        #     self.player.stand_right_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.character_scale))
-        #     self.player.stand_left_textures.clear()
-        #     self.player.stand_left_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.character_scale,mirrored=True))
-        #     self.fireball_cast_timer = 1
-        # if self.fireball_cast_timer < 0.87 and self.fireball_cast_timer > 0.5 and self.player_move == False and self.shoot_cd == True:
-        #     self.player.stand_right_textures.clear()
-        #     self.player.stand_right_textures.append(arcade.load_texture("images/Mage_4.png",scale = self.character_scale))
-        #     self.player.stand_left_textures.clear()
-        #     self.player.stand_left_textures.append(arcade.load_texture("images/Mage_4.png",scale=self.character_scale,mirrored=True))
-        #     self.fireball_cast_timer = 1.5
-        # if self.fireball_cast_timer < 1.37 and self.fireball_cast_timer > 1 and self.player_move == False and self.shoot_cd == True:
-        #     self.player.stand_right_textures.clear()
-        #     self.player.stand_right_textures.append(arcade.load_texture("images/Mage_5.png",scale = self.character_scale))
-        #     self.player.stand_left_textures.clear()
-        #     self.player.stand_left_textures.append(arcade.load_texture("images/Mage_5.png",scale=self.character_scale,mirrored=True))
-        #     self.fireball_cast_timer = 2
-        # if self.fireball_cast_timer < 1.87 and self.fireball_cast_timer > 1.5 and self.player_move == False and self.shoot_cd == True:
-        #     self.fireball()
-        #     self.player.stand_right_textures.clear()
-        #     self.player.stand_right_textures.append(arcade.load_texture("images/Mage_1.png",scale = self.character_scale))
-        #     self.player.stand_left_textures.clear()
-        #     self.player.stand_left_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.character_scale,mirrored=True))
-        #     self.fireball_cast_timer = 0
-        #     self.shoot_cd = False
+        if self.fireball_cast_timer > 0:
+            self.fireball_cast_timer -= delta_time
+        if self.fireball_cast_timer < 0.1 and self.player_move == False and self.shoot_cd == True:
+            self.player.stand_right_textures.clear()
+            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.character_scale))
+            self.player.stand_left_textures.clear()
+            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.character_scale,mirrored=True))
+            self.fireball_cast_timer = 1
+        if self.fireball_cast_timer < 0.87 and self.fireball_cast_timer > 0.5 and self.player_move == False and self.shoot_cd == True:
+            self.player.stand_right_textures.clear()
+            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_4.png",scale = self.character_scale))
+            self.player.stand_left_textures.clear()
+            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_4.png",scale=self.character_scale,mirrored=True))
+            self.fireball_cast_timer = 1.5
+        if self.fireball_cast_timer < 1.37 and self.fireball_cast_timer > 1 and self.player_move == False and self.shoot_cd == True:
+            self.player.stand_right_textures.clear()
+            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_5.png",scale = self.character_scale))
+            self.player.stand_left_textures.clear()
+            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_5.png",scale=self.character_scale,mirrored=True))
+            self.fireball_cast_timer = 2
+        if self.fireball_cast_timer < 1.87 and self.fireball_cast_timer > 1.5 and self.player_move == False and self.shoot_cd == True:
+            self.fireball()
+            self.player.stand_right_textures.clear()
+            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_1.png",scale = self.character_scale))
+            self.player.stand_left_textures.clear()
+            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.character_scale,mirrored=True))
+            self.fireball_cast_timer = 0
+            self.shoot_cd = False
 
 #slime_movement + spawn
 
@@ -403,13 +376,13 @@ class GameView(arcade.View):
 
         for spider in self.spider_list:
             if self.player.center_x > spider.center_x:
-                spider.change_x = 2
+                spider.change_x = (2 + x1)
             else:
-                spider.change_x = -2
+                spider.change_x = (-2 + x1)
             if self.player.center_y > spider.center_y:
-                spider.change_y = 2
+                spider.change_y = (2 + y1)
             else:
-                spider.change_y = -2
+                spider.change_y = (-2 + y1)
 
 #slime hitbox
 
