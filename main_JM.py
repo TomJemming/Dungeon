@@ -11,10 +11,12 @@ user32 = ctypes.windll.user32
 SCREEN_WIDTH = user32.GetSystemMetrics(0)
 SCREEN_HEIGHT = user32.GetSystemMetrics(1)
 
-x1 = 0
-y1 = 0
+x2 = 0
+y2 = 0
+
 
 class MenuView(arcade.View):
+
 
     def on_show(self):
         arcade.set_background_color(arcade.color.WHITE)
@@ -42,6 +44,7 @@ class GameView(arcade.View):
         self.player_life = 5
         self.slime_spawn_timer = 10
         self.spider_spawn_timer = 5
+        self.evasion_cooldown = 0
 
 
         self.background = arcade.load_texture(file_name="images/background.png")
@@ -214,26 +217,26 @@ class GameView(arcade.View):
         self.enemy_list.append(slime)
 
 #spider
-    def spider_enemy(self):
-
-        spider = arcade.Sprite(filename="images/spider_1.png",scale=0.1) #filename
-
-        spider.center_y = random.randrange(200, SCREEN_HEIGHT-200)
-        spider.center_x = random.randrange(200, SCREEN_WIDTH-100)
-        spider_coords_spawn_x = False
-        spider_coords_spawn_y = False
-
-        while spider_coords_spawn_x == False:
-            if spider.center_x < self.player.center_x + 100 and spider.center_x > self.player.center_x - 100:
-                spider.center_x = random.randrange(200, SCREEN_WIDTH)
-            else:
-                spider_coords_spawn_x = True
-
-
-        while spider_coords_spawn_y == False:
-            if spider.center_y < self.player.center_y + 100 and spider.center_y > self.player.center_y - 100:
-                spider.center_y = random.randrange(200, SCREEN_HEIGHT)
-            else:#spider
+    # def spider_enemy(self):
+    #
+    #     spider = arcade.Sprite(filename="images/spider_1.png",scale=0.1) #filename
+    #
+    #     spider.center_y = random.randrange(200, SCREEN_HEIGHT-200)
+    #     spider.center_x = random.randrange(200, SCREEN_WIDTH-100)
+    #     spider_coords_spawn_x = False
+    #     spider_coords_spawn_y = False
+    #
+    #     while spider_coords_spawn_x == False:
+    #         if spider.center_x < self.player.center_x + 100 and spider.center_x > self.player.center_x - 100:
+    #             spider.center_x = random.randrange(200, SCREEN_WIDTH)
+    #         else:
+    #             spider_coords_spawn_x = True
+    #
+    #
+    #     while spider_coords_spawn_y == False:
+    #         if spider.center_y < self.player.center_y + 100 and spider.center_y > self.player.center_y - 100:
+    #             spider.center_y = random.randrange(200, SCREEN_HEIGHT)
+    #         else:#spider
     def spider_enemy(self):
 
         spider = arcade.Sprite(filename="images/spider_1.png",scale=0.1) #filename
@@ -262,7 +265,7 @@ class GameView(arcade.View):
 
 
     def fireball(self):
-        fireball = arcade.Sprite(filename= "images/fireball1.png",scale=0.15)
+        fireball = arcade.Sprite(filename= "images/fireball_1.png",scale=0.15)
         #fireball = arcade.AnimatedTimeSprite()
         #fireball_scale = 0.25
 
@@ -308,19 +311,19 @@ class GameView(arcade.View):
 
     def evasion_movement(self,x,y,w,a,b):
         v = self.trajectory(x,y,a,b)
-        global x1
-        global y1
+        global x2
+        global y2
         for spider in self.spider_list:
-            if  w < v + 12.5 and w > v - 12.5:
-                if w < v:
-                    x1 = 1
-                    y1 = 1
+            if  w < v + 15 and w > v - 15:
+                if w <= v:
+                    x2 = 1
+                    y2 = 1
                 else:
-                    x1 = (-1)
-                    y1 = (-1)
+                    x2 = (-1)
+                    y2 = (-1)
             else:
-                x1 = 0
-                y1 = 0
+                x2 = 0
+                y2 = 0
 
 
     def update(self, delta_time):
@@ -390,36 +393,75 @@ class GameView(arcade.View):
 
 #spider movement & spawn
 
-        if self.spider_spawn_timer > 8:
+        if self.spider_spawn_timer > 3:
             self.spider_enemy()
             self.spider_spawn_timer = 0
-        x2 = 2
-        y2 = 2
-        d1 = self.player.center_x - spider.center_x
-        d2 = self.player.center_y - spider.center_y
-        if d1 < d2:
-            c = True
-        else :
-            c = False
-        sx = x1 + x2
-        sy = y1 + y2
-        if abs(sx) == 1 and abs(sy) == 1:
-            if c:
-                y2 = 0
-                x2 = 3
-            else:
-                y2 = 3
-                x2 = 0
+
+        x1 = x2
+        y1 = y2
 
         for spider in self.spider_list:
-            if self.player.center_x > spider.center_x:
-                spider.change_x = (x2 + x1)
+            d1 = self.player.center_x - spider.center_x
+            d2 = self.player.center_y - spider.center_y
+            if math.sqrt(d1 ** 2 + d2 ** 2) > 200:
+                # if d1 > d2:
+                #     if d1 > 0:
+                #         spider.change_x = 3 + x1
+                #     elif d1 == 0:
+                #         spider.change_x = 2 + x1
+                #     else:
+                #         spider.change_x = -3 + x1
+                #     if d2 > 0:
+                #         spider.change_y = 2 + y1
+                #     elif d2 == 0:
+                #         spider.change_y = 2 + y1
+                #     else:
+                #         spider.change_y = -2 + y1
+                # elif d2 > d1:
+                #     if d1 > 0:
+                #         spider.change_x = 2 + x1
+                #     elif d1 == 0:
+                #         spider.change_x = 2 + x1
+                #     else:
+                #         spider.change_x = -2 + x1
+                #     if d2 > 0:
+                #         spider.change_y = 3 + y1
+                #     elif d2 == 0:
+                #         spider.change_y = 2 + y1
+                #     else:
+                #         spider.change_y = -3 + y1
+                # else :
+                if d1 > 0:
+                    spider.change_x = 2 + x1
+                elif d1 == 0:
+                    spider.change_x = 2  + x1
+                else:
+                    spider.change_x = -2 + x1
+                if d2 > 0:
+                    spider.change_y = 2 + y1
+                elif d2 == 0:
+                    spider.change_y = 2 + y1
+                else:
+                    spider.change_y = -2 + y1
             else:
-                spider.change_x = (-x2 + x1)
-            if self.player.center_y > spider.center_y:
-                spider.change_y = (y2 + y1)
-            else:
-                spider.change_y = (-y2 + y1)
+                if d1 > 0:
+                    spider.change_x = 2
+                elif d1 == 0:
+                    spider.change_x = 0
+                else:
+                    spider.change_x = -2
+                if d2 > 0:
+                    spider.change_y = 2
+                elif d2 == 0:
+                    spider.change_y = 0
+                else:
+                    spider.change_y = -2
+
+            self.evasion_cooldown += delta_time
+            if self.evasion_cooldown == 4:
+                x1 = 0
+                y1 = 0
+                self.evasion_cooldown = 0
 
 #slime hitbox
 
