@@ -2,16 +2,22 @@ import arcade
 import math
 import ctypes
 import random
+import os
 
 
 x1 = 0
 y1 = 0
 
 
-user32 = ctypes.windll.user32
-SCREEN_WIDTH = user32.GetSystemMetrics(0)
-SCREEN_HEIGHT = user32.GetSystemMetrics(1)
-
+if os.name == "nt":
+    user32 = ctypes.windll.user32
+    SCREEN_WIDTH = user32.GetSystemMetrics(0)
+    SCREEN_HEIGHT = user32.GetSystemMetrics(1)
+elif os.name == "posix":
+    pass
+else:
+    SCREEN_HEIGHT = 500
+    SCREEN_WIDTH = 800
 
 class MenuView(arcade.View):
 
@@ -51,10 +57,16 @@ class GameView(arcade.View):
         self.onetime_door = True
         self.spider_spawn_timer = 5
 
+#scales
+        self.player_scale = (1/768) * SCREEN_HEIGHT
+        self.slime_scale = (0.8/768) * SCREEN_HEIGHT
+        self.spider_scale = (0.1/768) * SCREEN_HEIGHT
+        self.fireball_scale = (0.13/768) * SCREEN_HEIGHT
 
+#background
         self.background = arcade.load_texture(file_name="images/background.png")
 
-
+#sprite lists
         self.wall_up_list = arcade.SpriteList()
         self.wall_down_list = arcade.SpriteList()
         self.wall_right_list = arcade.SpriteList()
@@ -67,26 +79,26 @@ class GameView(arcade.View):
         self.door_list = arcade.SpriteList()
         self.spider_list = arcade.SpriteList()
 
+
 #player
         self.player = arcade.AnimatedWalkingSprite()
-        self.character_scale = 1
 
         self.player.stand_right_textures = []
-        self.player.stand_right_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.character_scale))
+        self.player.stand_right_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.player_scale))
 
         self.player.stand_left_textures = []
-        self.player.stand_left_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.character_scale,mirrored=True))
+        self.player.stand_left_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.player_scale,mirrored=True))
 
         self.player.walk_right_textures = []
 
-        self.player.walk_right_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.character_scale))
-        self.player.walk_right_textures.append(arcade.load_texture("images/Mage_2.png",scale=self.character_scale))
+        self.player.walk_right_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.player_scale))
+        self.player.walk_right_textures.append(arcade.load_texture("images/Mage_2.png",scale=self.player_scale))
 
 
         self.player.walk_left_textures = []
 
-        self.player.walk_left_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.character_scale,mirrored=True))
-        self.player.walk_left_textures.append(arcade.load_texture("images/Mage_2.png",scale=self.character_scale,mirrored=True))
+        self.player.walk_left_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.player_scale,mirrored=True))
+        self.player.walk_left_textures.append(arcade.load_texture("images/Mage_2.png",scale=self.player_scale,mirrored=True))
 
 
         self.player.texture_change_distance = 50
@@ -183,35 +195,35 @@ class GameView(arcade.View):
         if self.fireball_timer < 0.1:
             self.shoot_cd = True
 
-    def animation(self, sprite, name, frames: 2, scale: 1):
+
+    def animation(self, sprite, name, frames: 2, scale: 1,mirrored = False):
         if frames == 2:
             if self.animation_clock_2 == 1:
                 sprite.textures.clear()
-                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-1)+".png",scale= scale))
+                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-1)+".png",scale= scale,mirrored=mirrored))
                 sprite.set_texture(0)
                 sprite.textures.clear()
             if self.animation_clock_2 == 2:
                 sprite.textures.clear()
-                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames)+".png",scale= scale))
+                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames)+".png",scale= scale,mirrored=mirrored))
                 sprite.set_texture(0)
                 sprite.textures.clear()
         if frames == 3:
             if self.animation_clock_3 == 1:
                 sprite.textures.clear()
-                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-2)+".png",scale= scale))
+                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-2)+".png",scale= scale,mirrored=mirrored))
                 sprite.set_texture(0)
                 sprite.textures.clear()
             if self.animation_clock_3 == 2:
                 sprite.textures.clear()
-                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-1)+".png",scale= scale))
+                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames-1)+".png",scale= scale,mirrored=mirrored))
                 sprite.set_texture(0)
                 sprite.textures.clear()
             if self.animation_clock_3 == 3:
                 sprite.textures.clear()
-                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames)+".png",scale= scale))
+                sprite.textures.append(arcade.load_texture("images/"+name+"_"+str(frames)+".png",scale= scale,mirrored=mirrored))
                 sprite.set_texture(0)
                 sprite.textures.clear()
-
 
     def player_health(self):
         if self.onetime_health == True:
@@ -227,7 +239,7 @@ class GameView(arcade.View):
 
 
     def slime_enemy(self):
-        slime = arcade.Sprite(filename="images/slime_1.png")
+        slime = arcade.Sprite(filename="images/slime_1.png", scale=self.slime_scale)
 
         slime.center_y = random.randrange(200, SCREEN_HEIGHT-200)
         slime.center_x = random.randrange(200, SCREEN_WIDTH-100)
@@ -252,7 +264,7 @@ class GameView(arcade.View):
 
     def spider_enemy(self):
 
-        spider = arcade.Sprite(filename="images/spider_1.png",scale=0.1) #filename
+        spider = arcade.Sprite(filename="images/spider_1.png",scale=self.spider_scale) #filename
 
         spider.center_y = random.randrange(200, SCREEN_HEIGHT-200)
         spider.center_x = random.randrange(200, SCREEN_WIDTH-100)
@@ -302,7 +314,7 @@ class GameView(arcade.View):
 
 
     def fireball(self):
-        fireball = arcade.Sprite(filename= "images/fireball_1.png",scale=0.15)
+        fireball = arcade.Sprite(filename= "images/fireball_1.png",scale=self.fireball_scale)
 
         start_x = self.player.center_x
         start_y = self.player.center_y + 50
@@ -381,36 +393,41 @@ class GameView(arcade.View):
             self.fireball_cast_timer -= delta_time
         if self.fireball_cast_timer < 0.1 and self.player_move == False and self.shoot_cd == True:
             self.player.stand_right_textures.clear()
-            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.character_scale))
+            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.player_scale))
             self.player.stand_left_textures.clear()
-            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.character_scale,mirrored=True))
+            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_3.png",scale = self.player_scale,mirrored=True))
             self.fireball_cast_timer = 1
         if self.fireball_cast_timer < 0.87 and self.fireball_cast_timer > 0.5 and self.player_move == False and self.shoot_cd == True:
             self.player.stand_right_textures.clear()
-            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_4.png",scale = self.character_scale))
+            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_4.png",scale = self.player_scale))
             self.player.stand_left_textures.clear()
-            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_4.png",scale=self.character_scale,mirrored=True))
+            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_4.png",scale=self.player_scale,mirrored=True))
             self.fireball_cast_timer = 1.5
         if self.fireball_cast_timer < 1.37 and self.fireball_cast_timer > 1 and self.player_move == False and self.shoot_cd == True:
             self.player.stand_right_textures.clear()
-            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_5.png",scale = self.character_scale))
+            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_5.png",scale = self.player_scale))
             self.player.stand_left_textures.clear()
-            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_5.png",scale=self.character_scale,mirrored=True))
+            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_5.png",scale=self.player_scale,mirrored=True))
             self.fireball_cast_timer = 2
         if self.fireball_cast_timer < 1.87 and self.fireball_cast_timer > 1.5 and self.player_move == False and self.shoot_cd == True:
             self.fireball()
             self.player.stand_right_textures.clear()
-            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_1.png",scale = self.character_scale))
+            self.player.stand_right_textures.append(arcade.load_texture("images/Mage_1.png",scale = self.player_scale))
             self.player.stand_left_textures.clear()
-            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.character_scale,mirrored=True))
+            self.player.stand_left_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.player_scale,mirrored=True))
             self.fireball_cast_timer = 0
             self.shoot_cd = False
 
 #animations
         for slime in self.slime_list:
-            self.animation(slime, "slime",2, 1)
+            self.animation(slime, "slime",2, self.slime_scale)
         for fireball in self.fireball_list:
-            self.animation(fireball, "fireball", 3, 0.15)
+            self.animation(fireball, "fireball", 3, self.fireball_scale)
+        for spider in self.spider_list:
+            if spider.center_x > self.player.center_x:
+                self.animation(spider, "spider", 3, self.spider_scale, True)
+            else:
+                self.animation(spider, "spider", 3, self.spider_scale, False)
 
 
 #slime_movement + spawn
@@ -565,7 +582,10 @@ class PauseView(arcade.View):
 
 
 def main():
-    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Instruction and Game Over Views Example", fullscreen=True)
+    if os.name == "posix":
+        window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Instruction and Game Over Views Example", fullscreen=True, antialiasing=False)
+    else:
+        window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Instruction and Game Over Views Example", fullscreen=True)
     menu = MenuView()
     window.show_view(menu)
     arcade.run()
