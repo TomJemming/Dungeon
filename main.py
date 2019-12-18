@@ -420,7 +420,7 @@ class GameView(arcade.View):
 
 #slime_movement + spawn
 
-        if self.slime_spawn_timer > 2:
+        if self.slime_spawn_timer > 3:
            self.slime_enemy()
            self.slime_spawn_timer = 0
         for slime in self.slime_list:
@@ -436,7 +436,7 @@ class GameView(arcade.View):
 
 #spider movement & spawn
 
-        if self.spider_spawn_timer > 2:
+        if self.spider_spawn_timer > 8:
             self.spider_enemy()
             self.spider_spawn_timer = 0
 
