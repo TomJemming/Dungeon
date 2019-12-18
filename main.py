@@ -470,8 +470,6 @@ class GameView(arcade.View):
             if self.evasion_cooldown >= 3:
                 self.evasion_cooldown = 3
 
-
-
 #door
         if self.stage_timer < 0.01:
             if self.onetime_door == True:

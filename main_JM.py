@@ -44,7 +44,9 @@ class GameView(arcade.View):
         self.player_life = 5
         self.slime_spawn_timer = 10
         self.spider_spawn_timer = 5
+        self.rogue_spawn_timer = 3
         self.evasion_cooldown = 0
+        self.evasion_cooldown_rogue = 0
 
 
         self.background = arcade.load_texture(file_name="images/background.png")
@@ -60,6 +62,7 @@ class GameView(arcade.View):
         self.health_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
         self.spider_list = arcade.SpriteList()
+        self.rogue_list = arcade.SpriteList()
 #player
         self.player =  arcade.AnimatedWalkingSprite() #arcade.Sprite(filename="images/Mage_1.png")
         self.character_scale = 1
@@ -126,6 +129,7 @@ class GameView(arcade.View):
         arcade.draw_text("x " + str(self.player_life), color=arcade.color.WHITE, start_x = 120, start_y= SCREEN_HEIGHT - 75, font_size= 45)
         self.enemy_list.draw()
         self.spider_list.draw()
+        self.rogue_list.draw()
         self.player_list.draw()
         self.crosshair_list.draw()
         self.fireball_list.draw()
@@ -216,27 +220,6 @@ class GameView(arcade.View):
 
         self.enemy_list.append(slime)
 
-#spider
-    # def spider_enemy(self):
-    #
-    #     spider = arcade.Sprite(filename="images/spider_1.png",scale=0.1) #filename
-    #
-    #     spider.center_y = random.randrange(200, SCREEN_HEIGHT-200)
-    #     spider.center_x = random.randrange(200, SCREEN_WIDTH-100)
-    #     spider_coords_spawn_x = False
-    #     spider_coords_spawn_y = False
-    #
-    #     while spider_coords_spawn_x == False:
-    #         if spider.center_x < self.player.center_x + 100 and spider.center_x > self.player.center_x - 100:
-    #             spider.center_x = random.randrange(200, SCREEN_WIDTH)
-    #         else:
-    #             spider_coords_spawn_x = True
-    #
-    #
-    #     while spider_coords_spawn_y == False:
-    #         if spider.center_y < self.player.center_y + 100 and spider.center_y > self.player.center_y - 100:
-    #             spider.center_y = random.randrange(200, SCREEN_HEIGHT)
-    #         else:#spider
     def spider_enemy(self):
 
         spider = arcade.Sprite(filename="images/spider_1.png",scale=0.1) #filename
@@ -252,15 +235,30 @@ class GameView(arcade.View):
             else:
                 spider_coords_spawn_x = True
 
+    def range_enemy(self):
 
-        while spider_coords_spawn_y == False:
-            if spider.center_y < self.player.center_y + 100 and spider.center_y > self.player.center_y - 100:
-                spider.center_y = random.randrange(200, SCREEN_HEIGHT)
+        rogue = arcade.Sprite(filename="images/rogue_1.png",scale=0.1) #filename
+
+        rogue.center_y = random.randrange(200, SCREEN_HEIGHT-200)
+        rogue.center_x = random.randrange(200, SCREEN_WIDTH-100)
+        rogue_coords_spawn_x = False
+        rogue_coords_spawn_y = False
+
+        while rogue_coords_spawn_x == False:
+            if rogue.center_x < self.player.center_x + 100 and rogue.center_x > self.player.center_x - 100:
+                rogue.center_x = random.randrange(200, SCREEN_WIDTH)
             else:
-                spider_coords_spawn_y = True
+                rogue_coords_spawn_x = True
 
 
-        self.spider_list.append(spider)
+        while rogue_coords_spawn_y == False:
+            if rogue.center_y < self.player.center_y + 100 and rogue.center_y > self.player.center_y - 100:
+               rogue.center_y = random.randrange(200, SCREEN_HEIGHT)
+            else:
+                rogue_coords_spawn_y = True
+
+
+        self.rogue_list.append(rogue)
 
 
 
