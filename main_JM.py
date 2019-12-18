@@ -316,14 +316,16 @@ class GameView(arcade.View):
         for spider in self.spider_list:
             if  w < v + 15 and w > v - 15:
                 if w <= v:
-                    x2 = 1
-                    y2 = 1
+                    x2 = 4
+                    y2 = 4
                 else:
-                    x2 = (-1)
-                    y2 = (-1)
+                    x2 = (-4)
+                    y2 = (-4)
+                self.evasion_cooldown = 0
             else:
                 x2 = 0
                 y2 = 0
+                self.evasion_cooldown = 0
 
 
     def update(self, delta_time):
@@ -379,8 +381,8 @@ class GameView(arcade.View):
 #slime_movement + spawn
 
         if self.slime_spawn_timer > 5:
-            self.slime_enemy()
-            self.slime_spawn_timer = 0
+           self.slime_enemy()
+           self.slime_spawn_timer = 0
         for slime in self.enemy_list:
             if self.player.center_x > slime.center_x:
                 slime.change_x = 1
@@ -393,75 +395,38 @@ class GameView(arcade.View):
 
 #spider movement & spawn
 
-        if self.spider_spawn_timer > 3:
+        if self.spider_spawn_timer > 8:
             self.spider_enemy()
             self.spider_spawn_timer = 0
-
-        x1 = x2
-        y1 = y2
+        try:
+            ab = abs(x2) / x2
+        except ZeroDivisionError:
+            ab = 0
+        x1 = x2 - self.evasion_cooldown * ab
+        y1 = y2 - self.evasion_cooldown * ab
 
         for spider in self.spider_list:
             d1 = self.player.center_x - spider.center_x
             d2 = self.player.center_y - spider.center_y
-            if math.sqrt(d1 ** 2 + d2 ** 2) > 200:
-                # if d1 > d2:
-                #     if d1 > 0:
-                #         spider.change_x = 3 + x1
-                #     elif d1 == 0:
-                #         spider.change_x = 2 + x1
-                #     else:
-                #         spider.change_x = -3 + x1
-                #     if d2 > 0:
-                #         spider.change_y = 2 + y1
-                #     elif d2 == 0:
-                #         spider.change_y = 2 + y1
-                #     else:
-                #         spider.change_y = -2 + y1
-                # elif d2 > d1:
-                #     if d1 > 0:
-                #         spider.change_x = 2 + x1
-                #     elif d1 == 0:
-                #         spider.change_x = 2 + x1
-                #     else:
-                #         spider.change_x = -2 + x1
-                #     if d2 > 0:
-                #         spider.change_y = 3 + y1
-                #     elif d2 == 0:
-                #         spider.change_y = 2 + y1
-                #     else:
-                #         spider.change_y = -3 + y1
-                # else :
-                if d1 > 0:
-                    spider.change_x = 2 + x1
-                elif d1 == 0:
-                    spider.change_x = 2  + x1
-                else:
-                    spider.change_x = -2 + x1
-                if d2 > 0:
-                    spider.change_y = 2 + y1
-                elif d2 == 0:
-                    spider.change_y = 2 + y1
-                else:
-                    spider.change_y = -2 + y1
+            if d1 > 0:
+                spider.change_x = 2 + x1
+            elif d1 == 0:
+                spider.change_x = 2  + x1
             else:
-                if d1 > 0:
-                    spider.change_x = 2
-                elif d1 == 0:
-                    spider.change_x = 0
-                else:
-                    spider.change_x = -2
-                if d2 > 0:
-                    spider.change_y = 2
-                elif d2 == 0:
-                    spider.change_y = 0
-                else:
-                    spider.change_y = -2
+                spider.change_x = -2 + x1
+            if d2 > 0:
+                spider.change_y = 2 + y1
+            elif d2 == 0:
+                spider.change_y = 2 + y1
+            else:
+                spider.change_y = -2 + y1
 
-            self.evasion_cooldown += delta_time
-            if self.evasion_cooldown == 4:
-                x1 = 0
-                y1 = 0
-                self.evasion_cooldown = 0
+        if x2 == 0:
+            self.evasion_cooldown = 0
+        else:
+            self.evasion_cooldown += 2 * delta_time
+            if self.evasion_cooldown >= 3:
+                self.evasion_cooldown = 3
 
 #slime hitbox
 
