@@ -4,8 +4,8 @@ import ctypes
 import random
 
 
-x1 = 0
-y1 = 0
+x2 = 0
+y2 = 0
 
 
 user32 = ctypes.windll.user32
@@ -50,6 +50,7 @@ class GameView(arcade.View):
         self.loading_screen_on = 0
         self.onetime_door = True
         self.spider_spawn_timer = 5
+        self.evasion_cooldown = 0
 
 
         self.background = arcade.load_texture(file_name="images/background.png")
@@ -286,19 +287,21 @@ class GameView(arcade.View):
 
     def evasion_movement(self,x,y,w,a,b):
         v = self.trajectory(x,y,a,b)
-        global x1
-        global y1
+        global x2
+        global y2
         for spider in self.spider_list:
-            if  w < v + 12.5 and w > v - 12.5:
-                if w < v:
-                    x1 = 1
-                    y1 = 1
+            if  w < v + 15 and w > v - 15:
+                if w <= v:
+                    x2 = 4
+                    y2 = 4
                 else:
-                    x1 = (-1)
-                    y1 = (-1)
+                    x2 = (-4)
+                    y2 = (-4)
+                self.evasion_cooldown = 0
             else:
-                x1 = 0
-                y1 = 0
+                x2 = 0
+                y2 = 0
+                self.evasion_cooldown = 0
 
 
     def fireball(self):
@@ -409,6 +412,8 @@ class GameView(arcade.View):
 #animations
         for slime in self.slime_list:
             self.animation(slime, "slime",2, 1)
+        for spider in self.spider_list:
+            self.animation(spider, "spider",3, 0.2)
         for fireball in self.fireball_list:
             self.animation(fireball, "fireball", 3, 0.15)
 
@@ -416,8 +421,8 @@ class GameView(arcade.View):
 #slime_movement + spawn
 
         if self.slime_spawn_timer > 2:
-            self.slime_enemy()
-            self.slime_spawn_timer = 0
+           self.slime_enemy()
+           self.slime_spawn_timer = 0
         for slime in self.slime_list:
             if self.player.center_x > slime.center_x:
                 slime.change_x = 1
@@ -431,19 +436,40 @@ class GameView(arcade.View):
 
 #spider movement & spawn
 
-        if self.spider_spawn_timer > 8:
+        if self.spider_spawn_timer > 2:
             self.spider_enemy()
             self.spider_spawn_timer = 0
 
+        try:
+            ab = abs(x2) / x2
+        except ZeroDivisionError:
+            ab = 0
+        x1 = x2 - self.evasion_cooldown * ab
+        y1 = y2 - self.evasion_cooldown * ab
+
         for spider in self.spider_list:
-            if self.player.center_x > spider.center_x:
-                spider.change_x = (2 + x1)
+            d1 = self.player.center_x - spider.center_x
+            d2 = self.player.center_y - spider.center_y
+            if d1 > 0:
+                spider.change_x = 2 + x1
+            elif d1 == 0:
+                spider.change_x = 2  + x1
             else:
-                spider.change_x = (-2 + x1)
-            if self.player.center_y > spider.center_y:
-                spider.change_y = (2 + y1)
+                spider.change_x = -2 + x1
+            if d2 > 0:
+                spider.change_y = 2 + y1
+            elif d2 == 0:
+                spider.change_y = 2 + y1
             else:
-                spider.change_y = (-2 + y1)
+                spider.change_y = -2 + y1
+
+        if x2 == 0:
+            self.evasion_cooldown = 0
+        else:
+            self.evasion_cooldown += 2 * delta_time
+            if self.evasion_cooldown >= 3:
+                self.evasion_cooldown = 3
+
 
 
 #door
