@@ -13,6 +13,8 @@ SCREEN_HEIGHT = user32.GetSystemMetrics(1)
 
 x2 = 0
 y2 = 0
+x4 = 0
+y4 = 0
 
 
 class MenuView(arcade.View):
@@ -46,7 +48,7 @@ class GameView(arcade.View):
         self.spider_spawn_timer = 5
         self.rogue_spawn_timer = 3
         self.evasion_cooldown = 0
-        self.evasion_cooldown_rogue = 0
+        self.evasion_cooldown2 = 0
 
 
         self.background = arcade.load_texture(file_name="images/background.png")
@@ -235,7 +237,7 @@ class GameView(arcade.View):
             else:
                 spider_coords_spawn_x = True
 
-    def range_enemy(self):
+    def rogue_enemy(self):
 
         rogue = arcade.Sprite(filename="images/rogue_1.png",scale=0.1) #filename
 
@@ -296,7 +298,10 @@ class GameView(arcade.View):
         self.fireball_cast_timer = 0
 
         for spider in self.spider_list:
-            self.evasion_movement(start_x,start_y,angle,spider.center_x,spider.center_y)
+            self.evasion_movement(start_x,start_y,angle,spider.center_x,spider.center_y,1)
+        for rogue in self.rogue_list:
+            self.evasion_movement(start_x,start_y,angle,rogue.center_x,rogue.center_y,2)
+
 
     def trajectory(self,x,y,a,b):
 
@@ -307,11 +312,13 @@ class GameView(arcade.View):
         return v
 
 
-    def evasion_movement(self,x,y,w,a,b):
+    def evasion_movement(self,x,y,w,a,b,n):
         v = self.trajectory(x,y,a,b)
         global x2
         global y2
-        for spider in self.spider_list:
+        global x4
+        global y4
+        if n == 1:
             if  w < v + 15 and w > v - 15:
                 if w <= v:
                     x2 = 4
@@ -324,6 +331,19 @@ class GameView(arcade.View):
                 x2 = 0
                 y2 = 0
                 self.evasion_cooldown = 0
+        else :
+            if  w < v + 15 and w > v - 15:
+                if w <= v:
+                    x4 = 2
+                    y4 = 2
+                else:
+                    x4 = (-2)
+                    y4 = (-2)
+                    self.evasion_cooldown2 = 0
+            else:
+                x4 = 0
+                y4 = 0
+                self.evasion_cooldown2 = 0
 
 
     def update(self, delta_time):
@@ -333,6 +353,7 @@ class GameView(arcade.View):
         self.player_health()
         self.enemy_list.update()
         self.spider_list.update()
+        self.rogue_list.update()
 
         self.fireball_list.update()
         self.fireball_list.update_animation()
@@ -342,6 +363,7 @@ class GameView(arcade.View):
 
         self.slime_spawn_timer += delta_time
         self.spider_spawn_timer += delta_time
+        self.rogue_spawn_timer += delta_time
 
         if self.fireball_timer > 0:
             self.fireball_timer -= delta_time
@@ -378,9 +400,9 @@ class GameView(arcade.View):
 
 #slime_movement + spawn
 
-        if self.slime_spawn_timer > 5:
-           self.slime_enemy()
-           self.slime_spawn_timer = 0
+       # if self.slime_spawn_timer > 5:
+        #   self.slime_enemy()
+         #  self.slime_spawn_timer = 0
         for slime in self.enemy_list:
             if self.player.center_x > slime.center_x:
                 slime.change_x = 1
@@ -393,9 +415,9 @@ class GameView(arcade.View):
 
 #spider movement & spawn
 
-        if self.spider_spawn_timer > 8:
-            self.spider_enemy()
-            self.spider_spawn_timer = 0
+        #if self.spider_spawn_timer > 7:
+         #   self.spider_enemy()
+          #  self.spider_spawn_timer = 0
         try:
             ab = abs(x2) / x2
         except ZeroDivisionError:
@@ -423,8 +445,42 @@ class GameView(arcade.View):
             self.evasion_cooldown = 0
         else:
             self.evasion_cooldown += 2 * delta_time
-            if self.evasion_cooldown >= 3:
-                self.evasion_cooldown = 3
+            if self.evasion_cooldown >= 4:
+                self.evasion_cooldown = 4
+
+
+        if self.rogue_spawn_timer > 2:
+            self.rogue_enemy()
+            self.rogue_spawn_timer = 0
+        try:
+            ab = abs(x4) / x4
+        except ZeroDivisionError:
+            ab = 0
+        x3 = x4 - self.evasion_cooldown2 * ab
+        y3 = y4 - self.evasion_cooldown2 * ab
+
+        for rogue in self.rogue_list:
+            d1 = self.player.center_x - rogue.center_x
+            d2 = self.player.center_y - rogue.center_y
+            if d1 > 0:
+                rogue.change_x = 1 + x3
+            elif d1 == 0:
+                rogue.change_x = 1 + x3
+            else:
+                rogue.change_x = -1 + x3
+            if d2 > 0:
+                rogue.change_y = 1 + y3
+            elif d2 == 0:
+                rogue.change_y = 1 + y3
+            else:
+                rogue.change_y = -1 + y3
+
+        if x4 == 0:
+            self.evasion_cooldown2 = 0
+        else:
+            self.evasion_cooldown2 += 2 * delta_time
+            if self.evasion_cooldown2 >= 2:
+                self.evasion_cooldown2 = 2
 
 #slime hitbox
 
@@ -457,6 +513,23 @@ class GameView(arcade.View):
         for spider in self.spider_list:
             if spider.bottom > SCREEN_HEIGHT - 150 or spider.top < 150 or spider.right < 150 or spider.left > SCREEN_WIDTH - 150:
                 spider.kill()
+
+
+#rogue hitbox
+
+        rogue_hit_with_player = arcade.check_for_collision_with_list(self.player, self.rogue_list)
+        for rogue in rogue_hit_with_player:
+            self.player_life -= 1
+            rogue.kill()
+
+        for rogue in self.rogue_list:
+            rogue_hit_with_projectile = arcade.check_for_collision_with_list(rogue, self.fireball_list)
+            for rogue_hit in rogue_hit_with_projectile:
+                rogue.kill()
+
+        for rogue in self.rogue_list:
+            if rogue.bottom > SCREEN_HEIGHT - 150 or rogue.top < 150 or rogue.right < 150 or rogue.left > SCREEN_WIDTH - 150:
+                rogue.kill()
 
 
 
