@@ -462,18 +462,38 @@ class GameView(arcade.View):
         for rogue in self.rogue_list:
             d1 = self.player.center_x - rogue.center_x
             d2 = self.player.center_y - rogue.center_y
-            if d1 > 0:
-                rogue.change_x = 1 + x3
-            elif d1 == 0:
-                rogue.change_x = 1 + x3
+            d3 = (d1**2 + d2**2)**(1/2)
+            f = 0
+            if d3 > 400:
+                f = 0
+            if d3 > 250 and f == 0:
+                if d1 > 0:
+                    rogue.change_x = 1 + x3
+                elif d1 == 0:
+                    rogue.change_x = 1 + x3
+                else:
+                    rogue.change_x = -1 + x3
+                if d2 > 0:
+                    rogue.change_y = 1 + y3
+                elif d2 == 0:
+                    rogue.change_y = 1 + y3
+                else:
+                    rogue.change_y = -1 + y3
             else:
-                rogue.change_x = -1 + x3
-            if d2 > 0:
-                rogue.change_y = 1 + y3
-            elif d2 == 0:
-                rogue.change_y = 1 + y3
-            else:
-                rogue.change_y = -1 + y3
+                f = 1
+                if d1 > 0:
+                    rogue.change_y = -1 + y3
+                elif d1 == 0:
+                    rogue.change_y = 0 + y3
+                else:
+                    rogue.change_y = 1 + y3
+                if d2 > 0:
+                    rogue.change_x = -1 + x3
+                elif d2 == 0:
+                    rogue.change_x = 0 + x3
+                else:
+                    rogue.change_x = 1 + x3
+
 
         if x4 == 0:
             self.evasion_cooldown2 = 0
