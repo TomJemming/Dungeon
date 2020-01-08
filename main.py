@@ -19,6 +19,14 @@ else:
     SCREEN_HEIGHT = 500
     SCREEN_WIDTH = 800
 
+def screen_resolution_int(num):
+    x = int((num/768) * SCREEN_HEIGHT)
+    return x
+
+def screen_resolution_float(num):
+    x = (num/768) * SCREEN_HEIGHT
+    return x
+
 class MenuView(arcade.View):
 
     def on_show(self):
@@ -58,10 +66,11 @@ class GameView(arcade.View):
         self.spider_spawn_timer = 5
 
 #scales
-        self.player_scale = (1/768) * SCREEN_HEIGHT
-        self.slime_scale = (0.8/768) * SCREEN_HEIGHT
-        self.spider_scale = (0.1/768) * SCREEN_HEIGHT
-        self.fireball_scale = (0.13/768) * SCREEN_HEIGHT
+        self.player_scale = screen_resolution_float(0.825)
+        self.slime_scale = screen_resolution_float(0.8)
+        self.spider_scale = screen_resolution_float(0.1)
+        self.fireball_scale = screen_resolution_float(0.13)
+        self.crosshair_scale = screen_resolution_float(0.75)
 
 #background
         self.background = arcade.load_texture(file_name="images/background.png")
@@ -81,7 +90,7 @@ class GameView(arcade.View):
 
 
 #player
-        self.player = arcade.AnimatedWalkingSprite()
+        self.player = arcade.AnimatedWalkingSprite(scale=self.player_scale)
 
         self.player.stand_right_textures = []
         self.player.stand_right_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.player_scale))
@@ -105,35 +114,34 @@ class GameView(arcade.View):
 
         self.player.center_x = SCREEN_WIDTH//2
         self.player.center_y = SCREEN_HEIGHT//2
-        self.player.scale = 1
+        self.player.scale = self.player_scale
         self.player_list.append(self.player)
 
 #walls
         self.wall = arcade.Sprite("images/wall.png")
         self.wall.center_x = SCREEN_WIDTH//2
-        self.wall.center_y = 100
+        self.wall.center_y = screen_resolution_int(100)
         self.wall_down_list.append(self.wall)
 
         self.wall = arcade.Sprite("images/wall.png")
         self.wall.center_x = SCREEN_WIDTH//2
-        self.wall.center_y = SCREEN_HEIGHT-100
+        self.wall.center_y = SCREEN_HEIGHT-screen_resolution_int(100)
         self.wall_up_list.append(self.wall)
 
         self.wall = arcade.Sprite("images/wall_y.png")
-        self.wall.center_x = 100
+        self.wall.center_x = screen_resolution_int(100)
         self.wall.center_y = SCREEN_HEIGHT//2
         self.wall_left_list.append(self.wall)
 
         self.wall = arcade.Sprite("images/wall_y.png")
-        self.wall.center_x = SCREEN_WIDTH-100
+        self.wall.center_x = SCREEN_WIDTH-screen_resolution_int(100)
         self.wall.center_y = SCREEN_HEIGHT//2
         self.wall_right_list.append(self.wall)
 
 #crosshair
-        self.crosshair = arcade.Sprite("images/crosshair.png")
+        self.crosshair = arcade.Sprite("images/crosshair.png",scale=self.crosshair_scale)
         self.crosshair.center_x = SCREEN_WIDTH//2
         self.crosshair.center_y = SCREEN_HEIGHT//2
-        self.crosshair.scale = 0.75
         self.crosshair_list.append(self.crosshair)
 
 
@@ -142,33 +150,32 @@ class GameView(arcade.View):
         arcade.draw_texture_rectangle(SCREEN_WIDTH//2, SCREEN_HEIGHT//2,
                                       SCREEN_WIDTH, SCREEN_HEIGHT,
                                       self.background)
-        arcade.draw_text("{0:1}".format(int(self.stage_timer)), SCREEN_WIDTH/2, SCREEN_HEIGHT - 75, arcade.color.WHITE, 35, align="center", anchor_x="center",anchor_y="center")
-        arcade.draw_text("Stage: " + "{0:1}".format(int(self.stage)), SCREEN_WIDTH - 150, SCREEN_HEIGHT - 75, arcade.color.WHITE, 35, align="center", anchor_x="center",anchor_y="center")
-        arcade.draw_text("x " + str(self.player_life), color=arcade.color.WHITE, start_x = 120, start_y= SCREEN_HEIGHT - 75, font_size= 45)
+        arcade.draw_text("{0:1}".format(int(self.stage_timer)), SCREEN_WIDTH/2, SCREEN_HEIGHT - screen_resolution_int(75), arcade.color.WHITE, screen_resolution_int(35), align="center", anchor_x="center",anchor_y="center")
+        arcade.draw_text("Stage: " + "{0:1}".format(int(self.stage)), SCREEN_WIDTH - screen_resolution_int(150), SCREEN_HEIGHT - screen_resolution_int(75), arcade.color.WHITE, screen_resolution_int(35), align="center", anchor_x="center",anchor_y="center")
+        arcade.draw_text("x " + str(self.player_life), color=arcade.color.WHITE, start_x = screen_resolution_int(120), start_y= SCREEN_HEIGHT - screen_resolution_int(75), font_size= screen_resolution_int(45))
         #arcade.draw_text(str(self.animation_clock_2), color = arcade.color.WHITE, start_x = 120, start_y = SCREEN_HEIGHT - 150)
         self.slime_list.draw()
         self.spider_list.draw()
         self.player_list.draw()
         self.crosshair_list.draw()
         self.fireball_list.draw()
-        self.door_list.draw()
         self.health_list.draw()
         if self.loading_screen_on == 1:
             arcade.draw_rectangle_filled(0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2, color=arcade.color.BLACK)
-            arcade.draw_text("Stage " + "{0:1}".format(int(self.stage)), SCREEN_WIDTH//2, SCREEN_HEIGHT//2, arcade.color.WHITE, 60, align="center", anchor_x="center",anchor_y="center")
+            arcade.draw_text("Stage " + "{0:1}".format(int(self.stage)), SCREEN_WIDTH//2, SCREEN_HEIGHT//2, arcade.color.WHITE, screen_resolution_int(60), align="center", anchor_x="center",anchor_y="center")
 
 
 
     def on_key_press(self, symbol, modifiers:int):
         if self.shoot_cd == False:
             if symbol == arcade.key.W:
-                self.player.change_y = 5
+                self.player.change_y = screen_resolution_int(5)
             if symbol == arcade.key.S:
-                self.player.change_y = -5
+                self.player.change_y = -screen_resolution_int(5)
             if symbol == arcade.key.D:
-                self.player.change_x = 5
+                self.player.change_x = screen_resolution_int(5)
             if symbol == arcade.key.A:
-                self.player.change_x = -5
+                self.player.change_x = -screen_resolution_int(5)
         if symbol == arcade.key.ESCAPE:
             # pass self, the current view, to preserve this view's state
             pause = PauseView(self)
@@ -227,35 +234,36 @@ class GameView(arcade.View):
 
     def player_health(self):
         if self.onetime_health == True:
-            health = arcade.Sprite(filename="images/player_health.png", scale=0.15, center_x= 60, center_y= SCREEN_HEIGHT - 50)
+            health = arcade.Sprite(filename="images/player_health.png", scale=screen_resolution_float(0.15), center_x= screen_resolution_int(60), center_y= SCREEN_HEIGHT - screen_resolution_int(50))
             self.health_list.append(health)
             self.onetime_health = False
 
     def door(self):
         door = arcade.Sprite(filename="images/light.png")
-        door.center_x = SCREEN_WIDTH-100
+        door.center_x = SCREEN_WIDTH-screen_resolution_int(100)
         door.center_y = SCREEN_HEIGHT//2
         self.door_list.append(door)
+        self.background = arcade.load_texture(file_name="images/background_f.png")
 
 
     def slime_enemy(self):
         slime = arcade.Sprite(filename="images/slime_1.png", scale=self.slime_scale)
 
-        slime.center_y = random.randrange(200, SCREEN_HEIGHT-200)
-        slime.center_x = random.randrange(200, SCREEN_WIDTH-100)
+        slime.center_y = random.randrange(screen_resolution_int(200), SCREEN_HEIGHT-screen_resolution_int(200))
+        slime.center_x = random.randrange(screen_resolution_int(200), SCREEN_WIDTH-screen_resolution_int(100))
         slime_coords_spawn_x = False
         slime_coords_spawn_y = False
 
         while slime_coords_spawn_x == False:
-            if slime.center_x < self.player.center_x + 100 and slime.center_x > self.player.center_x - 100:
-                slime.center_x = random.randrange(200, SCREEN_WIDTH)
+            if slime.center_x < self.player.center_x + screen_resolution_int(100) and slime.center_x > self.player.center_x - screen_resolution_int(100):
+                slime.center_x = random.randrange(screen_resolution_int(200), SCREEN_WIDTH)
             else:
                 slime_coords_spawn_x = True
 
 
         while slime_coords_spawn_y == False:
-            if slime.center_y < self.player.center_y + 100 and slime.center_y > self.player.center_y - 100:
-                slime.center_y = random.randrange(200, SCREEN_HEIGHT)
+            if slime.center_y < self.player.center_y + screen_resolution_int(100) and slime.center_y > self.player.center_y - screen_resolution_int(100):
+                slime.center_y = random.randrange(screen_resolution_int(100), SCREEN_HEIGHT)
             else:
                 slime_coords_spawn_y = True
 
@@ -266,21 +274,21 @@ class GameView(arcade.View):
 
         spider = arcade.Sprite(filename="images/spider_1.png",scale=self.spider_scale) #filename
 
-        spider.center_y = random.randrange(200, SCREEN_HEIGHT-200)
-        spider.center_x = random.randrange(200, SCREEN_WIDTH-100)
+        spider.center_y = random.randrange(screen_resolution_int(200), SCREEN_HEIGHT-screen_resolution_int(200))
+        spider.center_x = random.randrange(screen_resolution_int(200), SCREEN_WIDTH-screen_resolution_int(100))
         spider_coords_spawn_x = False
         spider_coords_spawn_y = False
 
         while spider_coords_spawn_x == False:
-            if spider.center_x < self.player.center_x + 100 and spider.center_x > self.player.center_x - 100:
-                spider.center_x = random.randrange(200, SCREEN_WIDTH)
+            if spider.center_x < self.player.center_x + screen_resolution_int(100) and spider.center_x > self.player.center_x - screen_resolution_int(100):
+                spider.center_x = random.randrange(screen_resolution_int(200), SCREEN_WIDTH)
             else:
                 spider_coords_spawn_x = True
 
 
         while spider_coords_spawn_y == False:
-            if spider.center_y < self.player.center_y + 100 and spider.center_y > self.player.center_y - 100:
-                spider.center_y = random.randrange(200, SCREEN_HEIGHT)
+            if spider.center_y < self.player.center_y + screen_resolution_int(100) and spider.center_y > self.player.center_y - screen_resolution_int(100):
+                spider.center_y = random.randrange(screen_resolution_int(200), SCREEN_HEIGHT)
             else:
                 spider_coords_spawn_y = True
 
@@ -471,7 +479,7 @@ class GameView(arcade.View):
         door_hit_with_player = arcade.check_for_collision_with_list(self.player, self.door_list)
         for door in door_hit_with_player:
             self.stage += 1
-            self.player.center_x = 200
+            self.player.center_x = screen_resolution_int(200)
             self.player.center_y = SCREEN_HEIGHT//2
             door.kill()
             self.stage_timer = 13
@@ -484,6 +492,7 @@ class GameView(arcade.View):
         if self.loading_screen_timer > 0.8 and self.loading_screen_timer < 0.9:
             arcade.pause(2)
             self.loading_screen_on = 0
+            self.background = arcade.load_texture(file_name="images/background.png")
 
 #game_over
         if self.player_life < 1:
@@ -503,7 +512,7 @@ class GameView(arcade.View):
                 slime.kill()
 
         for slime in self.slime_list:
-            if slime.bottom > SCREEN_HEIGHT - 150 or slime.top < 150 or slime.right < 150 or slime.left > SCREEN_WIDTH - 150:
+            if slime.bottom > SCREEN_HEIGHT - screen_resolution_int(150) or slime.top < screen_resolution_int(150) or slime.right < screen_resolution_int(150) or slime.left > SCREEN_WIDTH - screen_resolution_int(150):
                 slime.kill()
 
 
@@ -519,31 +528,31 @@ class GameView(arcade.View):
                 spider.kill()
 
         for spider in self.spider_list:
-            if spider.bottom > SCREEN_HEIGHT - 150 or spider.top < 150 or spider.right < 150 or spider.left > SCREEN_WIDTH - 150:
+            if spider.bottom > SCREEN_HEIGHT - screen_resolution_int(150) or spider.top < screen_resolution_int(150) or spider.right < screen_resolution_int(150) or spider.left > SCREEN_WIDTH - screen_resolution_int(150):
                 spider.kill()
 
 
 #wall_hitbox
         wall_down_hit_list = arcade.check_for_collision_with_list(self.player, self.wall_down_list)
         for wall in wall_down_hit_list:
-            self.player.center_y += 5
+            self.player.center_y += screen_resolution_int(5)
 
         wall_up_hit_list = arcade.check_for_collision_with_list(self.player, self.wall_up_list)
         for wall in wall_up_hit_list:
-            self.player.center_y -= 5
+            self.player.center_y -= screen_resolution_int(5)
 
         wall_left_hit_list = arcade.check_for_collision_with_list(self.player, self.wall_left_list)
         for wall in wall_left_hit_list:
-            self.player.center_x += 5
+            self.player.center_x += screen_resolution_int(5)
 
         wall_right_hit_list = arcade.check_for_collision_with_list(self.player, self.wall_right_list)
         for wall in wall_right_hit_list:
-            self.player.center_x -= 5
+            self.player.center_x -= screen_resolution_int(5)
 
 
 #fireball_hitbox
         for fireball in self.fireball_list:
-            if fireball.bottom > SCREEN_HEIGHT - 150 or fireball.top < 150 or fireball.right < 150 or fireball.left > SCREEN_WIDTH - 150:
+            if fireball.bottom > SCREEN_HEIGHT - screen_resolution_int(150) or fireball.top < screen_resolution_int(150) or fireball.right < screen_resolution_int(150) or fireball.left > SCREEN_WIDTH - screen_resolution_int(150):
                 fireball.kill()
 
 
@@ -554,7 +563,7 @@ class PauseView(arcade.View):
 
 
     def on_show(self):
-        arcade.draw_text("PAUSED", SCREEN_WIDTH/2, SCREEN_HEIGHT/2+50,
+        arcade.draw_text("PAUSED", SCREEN_WIDTH/2, SCREEN_HEIGHT/2+screen_resolution_int(50),
                          arcade.color.BLACK, font_size=50, anchor_x="center")
 
 
@@ -563,13 +572,13 @@ class PauseView(arcade.View):
                          SCREEN_WIDTH/2,
                          SCREEN_HEIGHT/2,
                          arcade.color.BLACK,
-                         font_size=20,
+                         font_size=screen_resolution_int(20),
                          anchor_x="center")
         arcade.draw_text("Press Enter to reset",
                          SCREEN_WIDTH/2,
-                         SCREEN_HEIGHT/2-30,
+                         SCREEN_HEIGHT/2-screen_resolution_int(30),
                          arcade.color.BLACK,
-                         font_size=20,
+                         font_size=screen_resolution_int(20),
                          anchor_x="center")
 
 
@@ -585,7 +594,7 @@ def main():
     if os.name == "posix":
         window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Instruction and Game Over Views Example", fullscreen=True, antialiasing=False)
     else:
-        window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Instruction and Game Over Views Example", fullscreen=True)
+        window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Instruction and Game Over Views Example",fullscreen=True)
     menu = MenuView()
     window.show_view(menu)
     arcade.run()
