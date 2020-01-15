@@ -29,15 +29,11 @@ def screen_resolution_float(num):
 
 class MenuView(arcade.View):
 
-    def on_show(self):
-        arcade.set_background_color(arcade.color.WHITE)
-
     def on_draw(self):
-        arcade.start_render()
-        arcade.draw_text("Menu Screen", SCREEN_WIDTH/2, SCREEN_HEIGHT/2,
-                         arcade.color.BLACK, font_size=50, anchor_x="center")
-        arcade.draw_text("Click to advance.", SCREEN_WIDTH/2, SCREEN_HEIGHT/2-75,
-                         arcade.color.GRAY, font_size=20, anchor_x="center")
+        arcade.draw_texture_rectangle(SCREEN_WIDTH//2, SCREEN_HEIGHT//2,
+                                      SCREEN_WIDTH, SCREEN_HEIGHT,
+                                      arcade.load_texture(file_name="images/main_screen.png"))
+
 
     def on_mouse_press(self, x, y, button, modifiers):
         game = GameView()
@@ -161,7 +157,7 @@ class GameView(arcade.View):
         self.fireball_list.draw()
         self.health_list.draw()
         if self.loading_screen_on == 1:
-            arcade.draw_rectangle_filled(0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2, color=arcade.color.BLACK)
+            arcade.draw_texture_rectangle(SCREEN_WIDTH//2, SCREEN_HEIGHT//2, SCREEN_WIDTH, SCREEN_HEIGHT, arcade.load_texture(file_name="images/loading_screen.png"))
             arcade.draw_text("Stage " + "{0:1}".format(int(self.stage)), SCREEN_WIDTH//2, SCREEN_HEIGHT//2, arcade.color.WHITE, screen_resolution_int(60), align="center", anchor_x="center",anchor_y="center")
 
 
@@ -486,13 +482,15 @@ class GameView(arcade.View):
             self.onetime_door = True
             self.slime_list = arcade.SpriteList()
             self.fireball_list = arcade.SpriteList()
+            self.spider_list = arcade.SpriteList()
             self.loading_screen_on = 1
-            self.loading_screen_timer = 1
+            self.loading_screen_timer = 3
 
-        if self.loading_screen_timer > 0.8 and self.loading_screen_timer < 0.9:
+        if self.loading_screen_timer > 2.8 and self.loading_screen_timer < 2.9:
             arcade.pause(2)
             self.loading_screen_on = 0
             self.background = arcade.load_texture(file_name="images/background.png")
+
 
 #game_over
         if self.player_life < 1:
@@ -562,24 +560,10 @@ class PauseView(arcade.View):
         self.game_view = game_view
 
 
-    def on_show(self):
-        arcade.draw_text("PAUSED", SCREEN_WIDTH/2, SCREEN_HEIGHT/2+screen_resolution_int(50),
-                         arcade.color.BLACK, font_size=50, anchor_x="center")
-
-
-        # Show tip to return or reset
-        arcade.draw_text("Press Esc. to return",
-                         SCREEN_WIDTH/2,
-                         SCREEN_HEIGHT/2,
-                         arcade.color.BLACK,
-                         font_size=screen_resolution_int(20),
-                         anchor_x="center")
-        arcade.draw_text("Press Enter to reset",
-                         SCREEN_WIDTH/2,
-                         SCREEN_HEIGHT/2-screen_resolution_int(30),
-                         arcade.color.BLACK,
-                         font_size=screen_resolution_int(20),
-                         anchor_x="center")
+    def on_draw(self):
+        arcade.draw_texture_rectangle(SCREEN_WIDTH//2, SCREEN_HEIGHT//2,
+                                      SCREEN_WIDTH, SCREEN_HEIGHT,
+                                      arcade.load_texture(file_name="images/pause_screen.png"))
 
 
     def on_key_press(self, symbol, modifiers):
