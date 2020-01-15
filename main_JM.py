@@ -324,12 +324,12 @@ class GameView(arcade.View):
 
         bolt.angle = math.degrees(angle)
 
-        bolt.change_x = math.cos(angle) * 4
-        bolt.change_y = math.sin(angle) * 4
+        bolt.change_x = math.cos(angle) * 3
+        bolt.change_y = math.sin(angle) * 3
 
         self.bolt_list.append(bolt)
 
-        self.bolt_timer = 1
+        self.bolt_timer = 3
 
 
     def trajectory(self,x,y,a,b):
@@ -403,8 +403,7 @@ class GameView(arcade.View):
         if self.bolt_timer > 0:
             self.bolt_timer -= delta_time
 
-        if self.bolt_timer == 0:
-                self.bolt()
+
 
 #fireball_cast_animation
         if self.fireball_cast_timer > 0:
@@ -501,13 +500,16 @@ class GameView(arcade.View):
         y3 = y4 - self.evasion_cooldown2 * ab
 
         for rogue in self.rogue_list:
+            if self.bolt_timer <= 0:
+                self.bolt(rogue.center_x,rogue.center_y)
             d1 = self.player.center_x - rogue.center_x
             d2 = self.player.center_y - rogue.center_y
             d3 = (d1**2 + d2**2)**(1/2)
             f = 0
+
             if d3 > 400:
                 f = 0
-            if d3 > 250 and f == 0:
+            if d3 > 350 and f == 0:
                 if d1 > 0:
                     rogue.change_x = 1 + x3
                 elif d1 == 0:
@@ -616,10 +618,10 @@ class GameView(arcade.View):
             if fireball.bottom > SCREEN_HEIGHT - 200 or fireball.top < 200 or fireball.right < 200 or fireball.left > SCREEN_WIDTH - 200:
                 fireball.kill()
 
-        for fireball in self.fireball_list:
-            fireball_hit_with_projectile = arcade.check_for_collision_with_list(fireball, self.bolt_list)
-            for fireball_hit in fireball_hit_with_projectile:
-                fireball.kill()
+        # for fireball in self.fireball_list:
+        #     fireball_hit_with_projectile = arcade.check_for_collision_with_list(fireball, self.bolt_list)
+        #     for fireball_hit in fireball_hit_with_projectile:
+        #         fireball.kill()
 
         for bolt in self.bolt_list:
             if bolt.bottom > SCREEN_HEIGHT - 200 or bolt.top < 200 or bolt.right < 200 or bolt.left > SCREEN_WIDTH - 200:
