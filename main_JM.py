@@ -40,6 +40,7 @@ class GameView(arcade.View):
 
         self.fireball_timer = 0
         self.fireball_cast_timer = 0.5
+        self.bolt_timer = 5
         self.shoot_cd = False
         self.player_move = False
         self.onetime_health = True
@@ -49,6 +50,7 @@ class GameView(arcade.View):
         self.rogue_spawn_timer = 3
         self.evasion_cooldown = 0
         self.evasion_cooldown2 = 0
+
 
 
         self.background = arcade.load_texture(file_name="images/background.png")
@@ -61,6 +63,7 @@ class GameView(arcade.View):
         self.player_list = arcade.SpriteList()
         self.crosshair_list = arcade.SpriteList()
         self.fireball_list = arcade.SpriteList()
+        self.bolt_list = arcade.SpriteList()
         self.health_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
         self.spider_list = arcade.SpriteList()
@@ -135,6 +138,7 @@ class GameView(arcade.View):
         self.player_list.draw()
         self.crosshair_list.draw()
         self.fireball_list.draw()
+        self.bolt_list.draw()
         self.health_list.draw()
 
     def on_key_press(self, symbol, modifiers:int):
@@ -239,7 +243,7 @@ class GameView(arcade.View):
 
     def rogue_enemy(self):
 
-        rogue = arcade.Sprite(filename="images/rogue_1.png",scale=0.1) #filename
+        rogue = arcade.Sprite(filename="images/rogue_1.png",scale=0.25) #filename
 
         rogue.center_y = random.randrange(200, SCREEN_HEIGHT-200)
         rogue.center_x = random.randrange(200, SCREEN_WIDTH-100)
@@ -302,6 +306,31 @@ class GameView(arcade.View):
         for rogue in self.rogue_list:
             self.evasion_movement(start_x,start_y,angle,rogue.center_x,rogue.center_y,2)
 
+    def bolt(self,x,y):
+        bolt = arcade.Sprite(filename= "images/bolt_1.png",scale=0.1)
+
+
+        start_x = x
+        start_y = y + 50
+        bolt.center_x = start_x
+        bolt.center_y = start_y
+
+        dest_x = self.player.center_x
+        dest_y = self.player.center_y
+
+        x_diff = dest_x - start_x
+        y_diff = dest_y - start_y
+        angle = math.atan2(y_diff, x_diff)
+
+        bolt.angle = math.degrees(angle)
+
+        bolt.change_x = math.cos(angle) * 4
+        bolt.change_y = math.sin(angle) * 4
+
+        self.bolt_list.append(bolt)
+
+        self.bolt_timer = 1
+
 
     def trajectory(self,x,y,a,b):
 
@@ -358,6 +387,9 @@ class GameView(arcade.View):
         self.fireball_list.update()
         self.fireball_list.update_animation()
 
+        self.bolt_list.update()
+        self.bolt_list.update_animation()
+
         self.player_list.update()
         self.player_list.update_animation()
 
@@ -367,6 +399,12 @@ class GameView(arcade.View):
 
         if self.fireball_timer > 0:
             self.fireball_timer -= delta_time
+
+        if self.bolt_timer > 0:
+            self.bolt_timer -= delta_time
+
+        if self.bolt_timer == 0:
+                self.bolt()
 
 #fireball_cast_animation
         if self.fireball_cast_timer > 0:
@@ -397,6 +435,9 @@ class GameView(arcade.View):
             self.player.stand_left_textures.append(arcade.load_texture("images/Mage_1.png",scale=self.character_scale,mirrored=True))
             self.fireball_cast_timer = 0
             self.shoot_cd = False
+
+
+
 
 #slime_movement + spawn
 
@@ -481,18 +522,15 @@ class GameView(arcade.View):
                     rogue.change_y = -1 + y3
             else:
                 f = 1
-                if d1 > 0:
-                    rogue.change_y = -1 + y3
-                elif d1 == 0:
-                    rogue.change_y = 0 + y3
-                else:
-                    rogue.change_y = 1 + y3
-                if d2 > 0:
-                    rogue.change_x = -1 + x3
-                elif d2 == 0:
-                    rogue.change_x = 0 + x3
-                else:
-                    rogue.change_x = 1 + x3
+                xc = self.player.center_x
+                yc = self.player.center_y
+                xr = rogue.center_x
+                yr = rogue.center_y
+                ac = math.atan2(yc-yr, xc-xr)
+
+                rogue.change_x = math.sin(ac) * (-2)  * (1+ x3)
+                rogue.change_y = math.cos(ac) * 2 * (1 + y3)
+
 
 
         if x4 == 0:
@@ -501,6 +539,9 @@ class GameView(arcade.View):
             self.evasion_cooldown2 += 2 * delta_time
             if self.evasion_cooldown2 >= 2:
                 self.evasion_cooldown2 = 2
+
+
+
 
 #slime hitbox
 
@@ -574,6 +615,26 @@ class GameView(arcade.View):
         for fireball in self.fireball_list:
             if fireball.bottom > SCREEN_HEIGHT - 200 or fireball.top < 200 or fireball.right < 200 or fireball.left > SCREEN_WIDTH - 200:
                 fireball.kill()
+
+        for fireball in self.fireball_list:
+            fireball_hit_with_projectile = arcade.check_for_collision_with_list(fireball, self.bolt_list)
+            for fireball_hit in fireball_hit_with_projectile:
+                fireball.kill()
+
+        for bolt in self.bolt_list:
+            if bolt.bottom > SCREEN_HEIGHT - 200 or bolt.top < 200 or bolt.right < 200 or bolt.left > SCREEN_WIDTH - 200:
+                bolt.kill()
+
+        bolt_hit_with_player = arcade.check_for_collision_with_list(self.player, self.bolt_list)
+        for bolt in bolt_hit_with_player:
+            self.player_life -= 1
+            bolt.kill()
+
+        for bolt in self.bolt_list:
+            bolt_hit_with_projectile = arcade.check_for_collision_with_list(bolt, self.fireball_list)
+            for bolt_hit in bolt_hit_with_projectile:
+                bolt.kill()
+
 
 
 
