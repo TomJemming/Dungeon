@@ -490,6 +490,8 @@ class GameView(arcade.View):
             arcade.pause(2)
             self.loading_screen_on = 0
             self.background = arcade.load_texture(file_name="images/background.png")
+            self.animation_timer_2 = 4
+            self.animation_timer_3 = 4
 
 
 #game_over
