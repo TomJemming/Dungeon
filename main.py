@@ -5,9 +5,10 @@ import random
 import os
 
 
-x1 = 0
-y1 = 0
-
+x2 = 0
+y2 = 0
+x4 = 0
+y4 = 0
 
 if os.name == "nt":
     user32 = ctypes.windll.user32
@@ -45,6 +46,7 @@ class GameView(arcade.View):
 
         self.fireball_timer = 0
         self.fireball_cast_timer = 0.5
+        self.bolt_timer = 5
         self.shoot_cd = False
         self.player_move = False
         self.onetime_health = True
@@ -59,7 +61,10 @@ class GameView(arcade.View):
         self.stage = 1
         self.loading_screen_on = 0
         self.onetime_door = True
-        self.spider_spawn_timer = 5
+        self.spider_spawn_timer = 3
+        self.rogue_spawn_timer = 5
+        self.evasion_cooldown = 0
+        self.evasion_cooldown2 = 0
 
 #scales
         self.player_scale = screen_resolution_float(0.825)
@@ -79,10 +84,12 @@ class GameView(arcade.View):
         self.player_list = arcade.SpriteList()
         self.crosshair_list = arcade.SpriteList()
         self.fireball_list = arcade.SpriteList()
+        self.bolt_list = arcade.SpriteList()
         self.health_list = arcade.SpriteList()
         self.slime_list = arcade.SpriteList()
         self.door_list = arcade.SpriteList()
         self.spider_list = arcade.SpriteList()
+        self.rogue_list = arcade.SpriteList()
 
 
 #player
@@ -152,9 +159,11 @@ class GameView(arcade.View):
         #arcade.draw_text(str(self.animation_clock_2), color = arcade.color.WHITE, start_x = 120, start_y = SCREEN_HEIGHT - 150)
         self.slime_list.draw()
         self.spider_list.draw()
+        self.rogue_list.draw()
         self.player_list.draw()
         self.crosshair_list.draw()
         self.fireball_list.draw()
+        self.bolt_list.draw()
         self.health_list.draw()
         if self.loading_screen_on == 1:
             arcade.draw_texture_rectangle(SCREEN_WIDTH//2, SCREEN_HEIGHT//2, SCREEN_WIDTH, SCREEN_HEIGHT, arcade.load_texture(file_name="images/loading_screen.png"))
@@ -290,6 +299,32 @@ class GameView(arcade.View):
 
         self.spider_list.append(spider)
 
+    def rogue_enemy(self):
+
+        rogue = arcade.Sprite(filename="images/rogue_1.png",scale=0.25) #filename
+
+        rogue.center_y = random.randrange(200, SCREEN_HEIGHT-200)
+        rogue.center_x = random.randrange(200, SCREEN_WIDTH-100)
+        rogue_coords_spawn_x = False
+        rogue_coords_spawn_y = False
+
+        while rogue_coords_spawn_x == False:
+            if rogue.center_x < self.player.center_x + 100 and rogue.center_x > self.player.center_x - 100:
+                rogue.center_x = random.randrange(200, SCREEN_WIDTH)
+            else:
+                rogue_coords_spawn_x = True
+
+
+        while rogue_coords_spawn_y == False:
+            if rogue.center_y < self.player.center_y + 100 and rogue.center_y > self.player.center_y - 100:
+               rogue.center_y = random.randrange(200, SCREEN_HEIGHT)
+            else:
+                rogue_coords_spawn_y = True
+
+
+        self.rogue_list.append(rogue)
+
+
 
     def trajectory(self,x,y,a,b):
 
@@ -343,7 +378,77 @@ class GameView(arcade.View):
         self.fireball_cast_timer = 0
 
         for spider in self.spider_list:
-            self.evasion_movement(start_x,start_y,angle,spider.center_x,spider.center_y)
+            self.evasion_movement(start_x,start_y,angle,spider.center_x,spider.center_y,1)
+        for rogue in self.rogue_list:
+            self.evasion_movement(start_x,start_y,angle,rogue.center_x,rogue.center_y,2)
+
+    def bolt(self,x,y):
+        bolt = arcade.Sprite(filename= "images/bolt_1.png",scale=0.1)
+
+        start_x = x
+        start_y = y + 50
+        bolt.center_x = start_x
+        bolt.center_y = start_y
+
+        dest_x = self.player.center_x
+        dest_y = self.player.center_y
+
+        x_diff = dest_x - start_x
+        y_diff = dest_y - start_y
+        angle = math.atan2(y_diff, x_diff)
+
+        bolt.angle = math.degrees(angle)
+
+        bolt.change_x = math.cos(angle) * 3
+        bolt.change_y = math.sin(angle) * 3
+
+        self.bolt_list.append(bolt)
+
+        self.bolt_timer = 3
+
+    def trajectory(self,x,y,a,b):
+
+        diff_a = a-x
+        diff_b = b-y
+
+        v = math.atan2(diff_a, diff_b)
+        return v
+
+
+    def evasion_movement(self,x,y,w,a,b,n):
+        v = self.trajectory(x,y,a,b)
+        global x2
+        global y2
+        global x4
+        global y4
+        if n == 1:
+            if  w < v + 15 and w > v - 15:
+                if w <= v:
+                    x2 = 4
+                    y2 = 4
+                else:
+                    x2 = (-4)
+                    y2 = (-4)
+                self.evasion_cooldown = 0
+            else:
+                x2 = 0
+                y2 = 0
+                self.evasion_cooldown = 0
+        else :
+            if  w < v + 15 and w > v - 15:
+                if w <= v:
+                    x4 = 2
+                    y4 = 2
+                else:
+                    x4 = (-2)
+                    y4 = (-2)
+                    self.evasion_cooldown2 = 0
+            else:
+                x4 = 0
+                y4 = 0
+                self.evasion_cooldown2 = 0
+
+
 
     def update(self, delta_time):
 
@@ -352,19 +457,27 @@ class GameView(arcade.View):
         self.player_health()
         self.slime_list.update()
         self.spider_list.update()
+        self.rogue_list.update()
         self.door_list.update()
 
         self.fireball_list.update()
         self.fireball_list.update_animation()
+
+        self.bolt_list.update()
+        self.bolt_list.update_animation()
 
         self.player_list.update()
         self.player_list.update_animation()
 
         self.slime_spawn_timer += delta_time
         self.spider_spawn_timer += delta_time
+        self.rogue_spawn_timer += delta_time
 
         if self.fireball_timer > 0:
             self.fireball_timer -= delta_time
+
+        if self.bolt_timer > 0:
+            self.bolt_timer -= delta_time
 
         if self.stage_timer > 0:
             self.stage_timer -= delta_time
@@ -452,19 +565,95 @@ class GameView(arcade.View):
 
 #spider movement & spawn
 
-        if self.spider_spawn_timer > 8:
+        if self.spider_spawn_timer > 5:
             self.spider_enemy()
             self.spider_spawn_timer = 0
 
+        try:
+            ab = abs(x2) / x2
+        except ZeroDivisionError:
+            ab = 0
+        x1 = x2 - self.evasion_cooldown * ab
+        y1 = y2 - self.evasion_cooldown * ab
+
         for spider in self.spider_list:
-            if self.player.center_x > spider.center_x:
-                spider.change_x = (2 + x1)
+            d1 = self.player.center_x - spider.center_x
+            d2 = self.player.center_y - spider.center_y
+            if d1 > 0:
+                spider.change_x = 2 + x1
+            elif d1 == 0:
+                spider.change_x = 2  + x1
             else:
-                spider.change_x = (-2 + x1)
-            if self.player.center_y > spider.center_y:
-                spider.change_y = (2 + y1)
+                spider.change_x = -2 + x1
+            if d2 > 0:
+                spider.change_y = 2 + y1
+            elif d2 == 0:
+                spider.change_y = 2 + y1
             else:
-                spider.change_y = (-2 + y1)
+                spider.change_y = -2 + y1
+
+        if x2 == 0:
+            self.evasion_cooldown = 0
+        else:
+            self.evasion_cooldown += 2 * delta_time
+            if self.evasion_cooldown >= 4:
+                self.evasion_cooldown = 4
+
+
+        if self.rogue_spawn_timer > 8:
+            self.rogue_enemy()
+            self.rogue_spawn_timer = 0
+        try:
+            ab = abs(x4) / x4
+        except ZeroDivisionError:
+            ab = 0
+        x3 = x4 - self.evasion_cooldown2 * ab
+        y3 = y4 - self.evasion_cooldown2 * ab
+
+        for rogue in self.rogue_list:
+            if self.bolt_timer <= 0:
+                self.bolt(rogue.center_x,rogue.center_y)
+            d1 = self.player.center_x - rogue.center_x
+            d2 = self.player.center_y - rogue.center_y
+            d3 = (d1**2 + d2**2)**(1/2)
+            f = 0
+
+            if d3 > 400:
+                f = 0
+            if d3 > 350 and f == 0:
+                if d1 > 0:
+                    rogue.change_x = 1 + x3
+                elif d1 == 0:
+                    rogue.change_x = 1 + x3
+                else:
+                    rogue.change_x = -1 + x3
+                if d2 > 0:
+                    rogue.change_y = 1 + y3
+                elif d2 == 0:
+                    rogue.change_y = 1 + y3
+                else:
+                    rogue.change_y = -1 + y3
+            else:
+                f = 1
+                xc = self.player.center_x
+                yc = self.player.center_y
+                xr = rogue.center_x
+                yr = rogue.center_y
+                ac = math.atan2(yc-yr, xc-xr)
+
+                rogue.change_x = math.sin(ac) * (-2)  * (1+ x3)
+                rogue.change_y = math.cos(ac) * 2 * (1 + y3)
+
+
+
+        if x4 == 0:
+            self.evasion_cooldown2 = 0
+        else:
+            self.evasion_cooldown2 += 2 * delta_time
+            if self.evasion_cooldown2 >= 2:
+                self.evasion_cooldown2 = 2
+
+
 
 
 #door
@@ -531,6 +720,21 @@ class GameView(arcade.View):
             if spider.bottom > SCREEN_HEIGHT - screen_resolution_int(150) or spider.top < screen_resolution_int(150) or spider.right < screen_resolution_int(150) or spider.left > SCREEN_WIDTH - screen_resolution_int(150):
                 spider.kill()
 
+#rogue hitbox
+
+        rogue_hit_with_player = arcade.check_for_collision_with_list(self.player, self.rogue_list)
+        for rogue in rogue_hit_with_player:
+            self.player_life -= 1
+            rogue.kill()
+
+        for rogue in self.rogue_list:
+            rogue_hit_with_projectile = arcade.check_for_collision_with_list(rogue, self.fireball_list)
+            for rogue_hit in rogue_hit_with_projectile:
+                rogue.kill()
+
+        for rogue in self.rogue_list:
+            if rogue.bottom > SCREEN_HEIGHT - 150 or rogue.top < 150 or rogue.right < 150 or rogue.left > SCREEN_WIDTH - 150:
+                rogue.kill()
 
 #wall_hitbox
         wall_down_hit_list = arcade.check_for_collision_with_list(self.player, self.wall_down_list)
@@ -555,6 +759,20 @@ class GameView(arcade.View):
             if fireball.bottom > SCREEN_HEIGHT - screen_resolution_int(150) or fireball.top < screen_resolution_int(150) or fireball.right < screen_resolution_int(150) or fireball.left > SCREEN_WIDTH - screen_resolution_int(150):
                 fireball.kill()
 
+        for bolt in self.bolt_list:
+            if bolt.bottom > SCREEN_HEIGHT - 200 or bolt.top < 200 or bolt.right < 200 or bolt.left > SCREEN_WIDTH - 200:
+                bolt.kill()
+
+#bolt_hitbox
+        bolt_hit_with_player = arcade.check_for_collision_with_list(self.player, self.bolt_list)
+        for bolt in bolt_hit_with_player:
+            self.player_life -= 1
+            bolt.kill()
+
+        for bolt in self.bolt_list:
+            bolt_hit_with_projectile = arcade.check_for_collision_with_list(bolt, self.fireball_list)
+            for bolt_hit in bolt_hit_with_projectile:
+                bolt.kill()
 
 class PauseView(arcade.View):
     def __init__(self, game_view):
