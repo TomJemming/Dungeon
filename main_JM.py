@@ -652,8 +652,6 @@ class GameView(arcade.View):
                 bolt.kill()
 
 
-
-
 class PauseView(arcade.View):
     def __init__(self, game_view):
         super().__init__()
